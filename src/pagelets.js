@@ -93,16 +93,13 @@ export function init(options = {})
       if(link.matches(_options.selector))
       {
         e.preventDefault();
-        const target = link.getAttribute('data-target') || _options.defaultTarget;
-        const targetSelector = target ? '#' + target : 'body';
-        const targetEle = _options.listenElement.querySelector(targetSelector);
         const ajaxUrl = link.getAttribute('data-uri') || link.getAttribute('href');
 
         const request = {
           url: ajaxUrl,
           pushUrl: link.getAttribute('href'),
           sourceElement: link,
-          targetElement: targetEle,
+          targetElement: '#' + link.getAttribute('data-target'),
         };
         load(request)
           .then(({request, response}) =>
@@ -110,7 +107,7 @@ export function init(options = {})
                   const pushUrl = response.pushUrl || request.pushUrl || link.getAttribute('href');
                   if(pushUrl && pushUrl !== '#')
                   {
-                    _pushState(targetEle, pushUrl, ajaxUrl);
+                    _pushState(_resolveElement(request.targetElement), pushUrl, ajaxUrl);
                   }
                 }
           )
@@ -141,14 +138,16 @@ export function init(options = {})
  */
 export function load(pageletRequest)
 {
+  pageletRequest = _normalizeRequest(pageletRequest);
   return new Promise(
     (resolve, reject) =>
     {
-      pageletRequest.targetElement.classList.add(_pageletClasses.REQUESTED);
+      const targetElement = _resolveElement(pageletRequest.targetElement);
+      const targetSelector = targetElement.getAttribute('id') || '';
 
-      const targetSelector = pageletRequest.targetElement.getAttribute('id') || '';
+      targetElement.classList.add(_pageletClasses.REQUESTED);
 
-      if(_triggerEvent(pageletRequest.targetElement, events.PREPARE))
+      if(_triggerEvent(targetElement, events.PREPARE))
       {
         (new Request())
           .setUrl(pageletRequest.url)
@@ -158,13 +157,13 @@ export function load(pageletRequest)
               switch(e.type)
               {
                 case 'abort':
-                  _triggerEvent(pageletRequest.targetElement, events.CANCELLED);
+                  _triggerEvent(targetElement, events.CANCELLED);
                   break;
                 case 'error':
-                  _triggerEvent(pageletRequest.targetElement, events.ERROR);
+                  _triggerEvent(targetElement, events.ERROR);
                   break;
                 case 'progress':
-                  _triggerEvent(pageletRequest.targetElement, events.PROGRESS);
+                  _triggerEvent(targetElement, events.PROGRESS);
                   break;
               }
             })
@@ -174,15 +173,15 @@ export function load(pageletRequest)
             (xhr) =>
             {
               const pageletObjects = {request: pageletRequest, response: _normalizeResponse(xhr)};
-              if(_triggerEvent(pageletRequest.targetElement, events.RETRIEVED, pageletObjects))
+              if(_triggerEvent(targetElement, events.RETRIEVED, pageletObjects))
               {
-                _handleResponse(pageletRequest.targetElement, pageletObjects.response);
-                _triggerEvent(pageletRequest.targetElement, events.COMPLETE, pageletObjects)
+                _handleResponse(targetElement, pageletObjects.response);
+                _triggerEvent(targetElement, events.COMPLETE, pageletObjects)
               }
               resolve(pageletObjects);
             });
 
-        _triggerEvent(pageletRequest.targetElement, events.REQUESTED);
+        _triggerEvent(targetElement, events.REQUESTED);
       }
       else
       {
@@ -281,6 +280,29 @@ function _randomString(length)
 function _triggerEvent(element, eventType, data = {})
 {
   return element.dispatchEvent(new CustomEvent(eventType, {detail: data, bubbles: true, cancelable: true}));
+}
+
+/**
+ * @param {Pagelets~Request} request
+ * @return {Pagelets~Request}
+ * @private
+ */
+function _normalizeRequest(request)
+{
+  request.targetElement = request.targetElement || _options.defaultTarget || 'body';
+  return request;
+}
+
+/**
+ * @param {Element|string} elementOrSelector
+ * @returns {Element}
+ * @private
+ */
+function _resolveElement(elementOrSelector)
+{
+  return (elementOrSelector instanceof Element)
+    ? elementOrSelector
+    : _options.listenElement.querySelector(elementOrSelector)
 }
 
 /**
