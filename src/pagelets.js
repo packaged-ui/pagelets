@@ -151,6 +151,12 @@ export function load(pageletRequest)
       {
         (new Request())
           .setUrl(pageletRequest.url)
+          .setHeaders(
+            {
+              'x-requested-with': 'XMLHttpRequest',
+              'x-pagelet-request': '1',
+              'x-pagelet-target': targetSelector
+            })
           .setEventCallback(
             (e) =>
             {
@@ -167,7 +173,6 @@ export function load(pageletRequest)
                   break;
               }
             })
-          .setHeaders({'x-pagelet-request': '1', 'x-pagelet-target': targetSelector})
           .send()
           .then(
             (xhr) =>
