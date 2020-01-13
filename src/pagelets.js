@@ -87,12 +87,11 @@ export function init(options = {})
     'click',
     (e) =>
     {
-      //noinspection JSValidateTypes
       /**
        * @type {Element}
        */
-      const link = e.target;
-      if(link.matches(_options.selector))
+      const link = e.target.closest(_options.selector);
+      if(link)
       {
         e.preventDefault();
         const ajaxUrl = link.getAttribute('data-uri') || link.getAttribute('href');
