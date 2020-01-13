@@ -100,7 +100,7 @@ export function init(options = {})
           url: ajaxUrl,
           pushUrl: link.getAttribute('href'),
           sourceElement: link,
-          targetElement: '#' + link.getAttribute('data-target'),
+          targetElement: link.hasAttribute('data-target') ? '#' + link.getAttribute('data-target') : null,
         };
         load(request);
       }
