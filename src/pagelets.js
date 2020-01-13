@@ -34,11 +34,13 @@ const _pageletClasses = {
 /**
  * Pagelet Request
  * @typedef {Object} Pagelets~Request
- * @property {string} url - URL of the resource to request
+ * @property {string}  url       - URL of the resource to request
  * @property {Element} [sourceElement] - element requesting the pagelet
  * @property {Element} [targetElement] - element to receive the pagelet
- * @property {string} [pushUrl] - URL to set in the address bar
- * @property {object} [headers] - object containing custom headers for the request
+ * @property {string}  [pushUrl] - URL to set in the address bar
+ * @property {object}  [headers] - object containing custom headers for the request
+ * @property {object}  [data]    - object containing post data
+ * @property {string}  [method]  - request method to use
  */
 
 /**
@@ -101,17 +103,7 @@ export function init(options = {})
           sourceElement: link,
           targetElement: '#' + link.getAttribute('data-target'),
         };
-        load(request)
-          .then(({request, response}) =>
-                {
-                  const pushUrl = response.pushUrl || request.pushUrl || link.getAttribute('href');
-                  if(pushUrl && pushUrl !== '#')
-                  {
-                    _pushState(_resolveElement(request.targetElement), pushUrl, ajaxUrl);
-                  }
-                }
-          )
-          .catch();
+        load(request);
       }
     }
   );
@@ -151,6 +143,7 @@ export function load(pageletRequest)
       {
         (new Request())
           .setUrl(pageletRequest.url)
+          .setMethod(pageletRequest.method || (pageletRequest.data ? Request.POST : Request.GET))
           .setHeaders(
             {
               'x-requested-with': 'XMLHttpRequest',
@@ -173,6 +166,7 @@ export function load(pageletRequest)
                   break;
               }
             })
+          .setData(pageletRequest.data)
           .send()
           .then(
             (xhr) =>
@@ -182,6 +176,15 @@ export function load(pageletRequest)
               {
                 _handleResponse(targetElement, pageletObjects.response);
                 _triggerEvent(targetElement, events.COMPLETE, pageletObjects)
+              }
+              let pushUrl = pageletObjects.response.pushUrl || pageletObjects.request.pushUrl;
+              if((!pushUrl) && pageletObjects.request.sourceElement)
+              {
+                pushUrl = pageletObjects.request.sourceElement.getAttribute('href')
+              }
+              if(pushUrl && pushUrl !== '#')
+              {
+                _pushState(_resolveElement(targetElement), pushUrl, pageletObjects.request.url);
               }
               resolve(pageletObjects);
             });
