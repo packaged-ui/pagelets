@@ -23,7 +23,7 @@
     "build": "rollup -c rollup.config.js"
   },
   "dependencies": {
-    "@packaged-ui/request": "^0.0.8",
+    "@packaged-ui/request": "^0.0.9",
     "html5-history-api": "^4.2.10"
   }
 }

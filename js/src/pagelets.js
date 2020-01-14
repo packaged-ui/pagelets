@@ -30,7 +30,19 @@ const _pageletStates = {
  * @property {?string}  defaultTarget - If no data-target specified, which container to load the content into
  * @property {?boolean} allowPersistentTargets - If a page has been reloaded, allow pagelets to load into containers of the same name
  * @property {?Node}    listenElement - Listen to links within this container only
+ * @property {int}      minRefreshRate - Minimum time to wait between pagelet refreshes
  */
+
+/**
+ * @type {Pagelets~InitOptions}
+ */
+const _defaultOptions = {
+  selector: '[data-uri],[data-target]',
+  defaultTarget: null,
+  allowPersistentTargets: true,
+  listenElement: document,
+  minRefreshRate: 500,
+};
 
 /**
  * Pagelet Request
@@ -69,16 +81,6 @@ const _pageletStates = {
  * @property {Pagelets~Response~Location} [location] - Set the window url
  * @property {Pagelets~Response~Resources} [resources] - Resources that should be loaded into the document
  */
-
-/**
- * @type {Pagelets~InitOptions}
- */
-const _defaultOptions = {
-  selector: '[data-uri],[data-target]',
-  defaultTarget: null,
-  allowPersistentTargets: true,
-  listenElement: document,
-};
 
 let _options = Object.assign({}, _defaultOptions);
 
@@ -139,13 +141,19 @@ export function load(request)
     (resolve, reject) =>
     {
       const targetElement = _resolveElement(request.targetElement);
-      const targetSelector = targetElement.getAttribute('id') || '';
-
       _setPageletState(targetElement, _pageletStates.REQUESTED);
+
+      if(targetElement.pageletRequest)
+      {
+        targetElement.pageletRequest.abort();
+      }
+
+      const targetSelector = targetElement.getAttribute('id') || '';
 
       if(_triggerEvent(targetElement, events.PREPARE))
       {
-        (new Request())
+        const req = targetElement.pageletRequest = (new Request());
+        req
           .setUrl(request.url)
           .setMethod(request.method || (request.data ? Request.POST : Request.GET))
           .setHeaders(
@@ -162,7 +170,7 @@ export function load(request)
                 case 'loadstart':
                   _setPageletState(
                     targetElement,
-                    targetElement.dataset.selfUri === request.url ? _pageletStates.REFRESHING : _pageletStates.LOADING
+                    targetElement.getAttribute('data-self-uri') === request.url ? _pageletStates.REFRESHING : _pageletStates.LOADING
                   );
                   break;
                 case 'progress':
@@ -179,7 +187,9 @@ export function load(request)
                   break;
               }
             })
-          .setData(request.data)
+          .setData(request.data);
+
+        req
           .send()
           .then(
             (xhr) =>
@@ -225,7 +235,7 @@ export function load(request)
           .then(
             () =>
             {
-              targetElement.dataset.selfUri = request.url;
+              targetElement.setAttribute('data-self-uri', request.url);
               _setPageletState(targetElement, _pageletStates.NONE);
             });
 
@@ -246,16 +256,30 @@ function _initialiseNewPagelets(parentElement)
   pageletElements.forEach(
     (pageletElement) =>
     {
-      if(!pageletElement.initialized)
+      if(!pageletElement.pageletInitialized)
       {
-        pageletElement.initialized = true;
-        load(
-          {
-            url: pageletElement.getAttribute('data-self-uri'),
-            sourceElement: pageletElement,
-            targetElement: pageletElement
-          });
+        pageletElement.pageletInitialized = true;
+        _refreshPagelet(pageletElement);
       }
+    });
+}
+
+function _queueRefresh(element)
+{
+  if(element.hasAttribute('data-refresh'))
+  {
+    const refreshTime = Math.max(_options.minRefreshRate, element.getAttribute('data-refresh'));
+    setTimeout(() => {_refreshPagelet(element)}, refreshTime);
+  }
+}
+
+function _refreshPagelet(element)
+{
+  load(
+    {
+      url: element.getAttribute('data-self-uri'),
+      sourceElement: element,
+      targetElement: element
     });
 }
 
@@ -450,5 +474,6 @@ function _handleResponse(pageletElement, response)
   if(_triggerEvent(pageletElement, events.RENDERED, {response}))
   {
     _initialiseNewPagelets(pageletElement);
+    _queueRefresh(pageletElement);
   }
 }
