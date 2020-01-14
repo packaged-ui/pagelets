@@ -58,8 +58,8 @@ const _defaultOptions = {
 /**
  * Pagelet Resources Response
  * @typedef {Object} Pagelets~Response~Resources
- * @property {?Array} js
- * @property {?Array} css
+ * @property {Array} [js]
+ * @property {Array} [css]
  */
 
 /**
