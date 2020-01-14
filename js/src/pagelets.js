@@ -181,7 +181,6 @@ export function load(request)
                   _triggerEvent(targetElement, events.CANCELLED);
                   break;
                 case 'error':
-                  console.log(e);
                   _setPageletState(targetElement, _pageletStates.ERROR);
                   _triggerEvent(targetElement, events.ERROR);
                   break;
