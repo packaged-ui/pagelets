@@ -1,0 +1,31 @@
+{
+  "name": "packaged-ui/pagelets",
+  "license": "MIT",
+  "type": "library",
+  "description": "",
+  "authors": [
+    {
+      "name": "Tom Kay",
+      "email": "oridan82@gmail.com"
+    }
+  ],
+  "config": {
+    "vendor-dir": "php/vendor"
+  },
+  "require": {
+    "ext-json": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^6.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "PackagedUI\\Pagelets\\": "php/src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "PackagedUI\\PageletsTest\\": "php/tests"
+    }
+  }
+}
