@@ -14,7 +14,8 @@ export const events = {
   ERROR: 'error',
 };
 
-const _pageletClasses = {
+const _pageletStates = {
+  NONE: '',
   REQUESTED: 'requested',
   LOADING: 'loading',
   LOADED: 'loaded',
@@ -36,7 +37,7 @@ const _pageletClasses = {
  * @typedef {Object} Pagelets~Request
  * @property {string}  url       - URL of the resource to request
  * @property {Element} [sourceElement] - element requesting the pagelet
- * @property {Element} [targetElement] - element to receive the pagelet
+ * @property {Element|string} [targetElement] - element to receive the pagelet
  * @property {string}  [pushUrl] - URL to set in the address bar
  * @property {object}  [headers] - object containing custom headers for the request
  * @property {object}  [data]    - object containing post data
@@ -54,8 +55,8 @@ const _pageletClasses = {
  * Pagelet Location Response
  * @typedef {Object} Pagelets~Response~Location
  * @property {string} url
- * @property {bool} replaceHistory
- * @property {bool} reloadWindow
+ * @property {boolean} replaceHistory
+ * @property {boolean} reloadWindow
  */
 
 /**
@@ -93,22 +94,20 @@ export function init(options = {})
     'click',
     (e) =>
     {
-      /**
-       * @type {Element}
-       */
-      const link = e.target.closest(_options.selector);
-      if(link)
+      if(e.target instanceof Element)
       {
-        e.preventDefault();
-        const ajaxUrl = link.getAttribute('data-uri') || link.getAttribute('href');
-
-        const request = {
-          url: ajaxUrl,
-          pushUrl: link.getAttribute('href'),
-          sourceElement: link,
-          targetElement: link.hasAttribute('data-target') ? '#' + link.getAttribute('data-target') : null,
-        };
-        load(request);
+        const link = e.target.closest(_options.selector);
+        if(link)
+        {
+          e.preventDefault();
+          load(
+            {
+              url: link.getAttribute('data-uri') || link.getAttribute('href'),
+              pushUrl: link.getAttribute('href'),
+              sourceElement: link,
+              targetElement: _normalizeTarget(link.getAttribute('data-target')),
+            });
+        }
       }
     }
   );
@@ -130,25 +129,25 @@ export function init(options = {})
 }
 
 /**
- * @param {Pagelets~Request} pageletRequest
+ * @param {Pagelets~Request} request
  * @private
  */
-export function load(pageletRequest)
+export function load(request)
 {
-  pageletRequest = _normalizeRequest(pageletRequest);
+  request = _normalizeRequest(request);
   return new Promise(
     (resolve, reject) =>
     {
-      const targetElement = _resolveElement(pageletRequest.targetElement);
+      const targetElement = _resolveElement(request.targetElement);
       const targetSelector = targetElement.getAttribute('id') || '';
 
-      targetElement.classList.add(_pageletClasses.REQUESTED);
+      _setPageletState(targetElement, _pageletStates.REQUESTED);
 
       if(_triggerEvent(targetElement, events.PREPARE))
       {
         (new Request())
-          .setUrl(pageletRequest.url)
-          .setMethod(pageletRequest.method || (pageletRequest.data ? Request.POST : Request.GET))
+          .setUrl(request.url)
+          .setMethod(request.method || (request.data ? Request.POST : Request.GET))
           .setHeaders(
             {
               'x-requested-with': 'XMLHttpRequest',
@@ -160,38 +159,70 @@ export function load(pageletRequest)
             {
               switch(e.type)
               {
-                case 'abort':
-                  _triggerEvent(targetElement, events.CANCELLED);
-                  break;
-                case 'error':
-                  _triggerEvent(targetElement, events.ERROR);
+                case 'loadstart':
+                  _setPageletState(targetElement, _pageletStates.LOADING);
                   break;
                 case 'progress':
                   _triggerEvent(targetElement, events.PROGRESS);
                   break;
+                case 'abort':
+                  _setPageletState(targetElement, _pageletStates.NONE);
+                  _triggerEvent(targetElement, events.CANCELLED);
+                  break;
+                case 'error':
+                  console.log(e);
+                  _setPageletState(targetElement, _pageletStates.ERROR);
+                  _triggerEvent(targetElement, events.ERROR);
+                  break;
               }
             })
-          .setData(pageletRequest.data)
+          .setData(request.data)
           .send()
           .then(
             (xhr) =>
             {
-              const pageletObjects = {request: pageletRequest, response: _normalizeResponse(xhr)};
+              _setPageletState(targetElement, _pageletStates.LOADED);
+              const response = _normalizeResponse(xhr);
+              const pageletObjects = {request: request, response: response};
               if(_triggerEvent(targetElement, events.RETRIEVED, pageletObjects))
               {
-                _handleResponse(targetElement, pageletObjects.response);
+                _handleResponse(targetElement, response);
                 _triggerEvent(targetElement, events.COMPLETE, pageletObjects)
               }
-              let pushUrl = pageletObjects.response.pushUrl || pageletObjects.request.pushUrl;
-              if((!pushUrl) && pageletObjects.request.sourceElement)
+
+              if(response.location)
               {
-                pushUrl = pageletObjects.request.sourceElement.getAttribute('href')
+                if(response.location.reloadWindow)
+                {
+                  if(response.location.replaceHistory)
+                  {
+                    _location.replace(response.location.url);
+                  }
+                  else
+                  {
+                    _location.assign(response.location.url);
+                  }
+                }
+                else
+                {
+                  _pushState(targetElement, response.location.url, request.url, response.location.replaceHistory);
+                }
               }
-              if(pushUrl && pushUrl !== '#')
+              else
               {
-                _pushState(_resolveElement(targetElement), pushUrl, pageletObjects.request.url);
+                let requestPushUrl = request.pushUrl
+                  || (request.sourceElement ? request.sourceElement.getAttribute('href') : null);
+                if(requestPushUrl)
+                {
+                  _pushState(targetElement, requestPushUrl, request.url, false);
+                }
               }
               resolve(pageletObjects);
+            })
+          .then(
+            () =>
+            {
+              _setPageletState(targetElement, _pageletStates.NONE);
             });
 
         _triggerEvent(targetElement, events.REQUESTED);
@@ -214,10 +245,26 @@ function _initialiseNewPagelets(parentElement)
       if(!pageletElement.initialized)
       {
         pageletElement.initialized = true;
-        load({url: pageletElement.getAttribute('data-self-uri'), targetElement: pageletElement});
+        load(
+          {
+            url: pageletElement.getAttribute('data-self-uri'),
+            sourceElement: pageletElement,
+            targetElement: pageletElement
+          });
       }
-    }
-  );
+    });
+}
+
+function _setPageletState(element, state)
+{
+  if(state)
+  {
+    element.setAttribute('data-pagelet-state', state);
+  }
+  else
+  {
+    element.removeAttribute('data-pagelet-state');
+  }
 }
 
 const _pageletIds = {};
@@ -230,13 +277,32 @@ const _pageletIds = {};
  * @property {string} ajaxUrl
  */
 
-function _pushState(targetEle, pushUrl, ajaxUrl)
+/**
+ * @param targetEle
+ * @param pushUrl
+ * @param ajaxUrl
+ * @param replaceHistory
+ * @private
+ */
+function _pushState(targetEle, pushUrl, ajaxUrl, replaceHistory)
 {
+  if(pushUrl && pushUrl === '#')
+  {
+    return;
+  }
+  targetEle = _resolveElement(targetEle);
   // assign target an id, store globally so that when we popstate we can find where it should go.  If it does not exist, then we must reload the page.
   targetEle.pageletId = targetEle.pageletId || _randomString(36);
   _pageletIds[targetEle.pageletId] = targetEle;
   const state = {targetPageletId: targetEle.pageletId, targetId: targetEle.getAttribute('id'), pushUrl, ajaxUrl};
-  History.pushState(state, null, pushUrl);
+  if(replaceHistory)
+  {
+    History.replaceState(state, null, pushUrl);
+  }
+  else
+  {
+    History.pushState(state, null, pushUrl);
+  }
 }
 
 window.addEventListener('popstate', (d) =>
@@ -295,6 +361,15 @@ function _triggerEvent(element, eventType, data = {})
   return element.dispatchEvent(new CustomEvent(eventType, {detail: data, bubbles: true, cancelable: true}));
 }
 
+function _normalizeTarget(id)
+{
+  if(!!id)
+  {
+    return '#' + id;
+  }
+  return 'body';
+}
+
 /**
  * @param {Pagelets~Request} request
  * @return {Pagelets~Request}
@@ -302,7 +377,7 @@ function _triggerEvent(element, eventType, data = {})
  */
 function _normalizeRequest(request)
 {
-  request.targetElement = request.targetElement || _options.defaultTarget || 'body';
+  request.targetElement = request.targetElement || _normalizeTarget(_options.defaultTarget);
   return request;
 }
 
@@ -338,7 +413,7 @@ function _normalizeResponse(xhr)
     case 'text/html':
       return {
         contentType: contentType || 'text/plain',
-        markup: responseString,
+        content: responseString,
       };
     case 'application/json':
     case 'application/javascript':
@@ -361,10 +436,10 @@ function _handleResponse(pageletElement, response)
   switch(response.contentType)
   {
     case 'text/plain':
-      pageletElement.textContent = response.markup;
+      pageletElement.textContent = response.content;
       break;
     case 'text/html':
-      pageletElement.innerHTML = response.markup;
+      pageletElement.innerHTML = response.content;
       break;
   }
 
