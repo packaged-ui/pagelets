@@ -45,22 +45,28 @@ const _pageletClasses = {
 
 /**
  * Pagelet Resources Response
- * @typedef {Object} Pagelets~ResourcesResponse
+ * @typedef {Object} Pagelets~Response~Resources
  * @property {?Array} js
  * @property {?Array} css
  */
 
 /**
+ * Pagelet Location Response
+ * @typedef {Object} Pagelets~Response~Location
+ * @property {string} url
+ * @property {bool} replaceHistory
+ * @property {bool} reloadWindow
+ */
+
+/**
  * Pagelet Response
  * @typedef {Object} Pagelets~Response
- * @property {string}  [reloadPage] - Force the page to refresh
- * @property {string}  [reloadPagelet] - Reload pagelet containers by selectors
- * @property {string}  [pushUrl] - Push a specific url to the address bar history
- * @property {boolean} [replaceHistory] - replace the current browser history
- * @property {object}  [meta] - metadata provided by the backend, which can be read in events
+ * @property {string}  [content] - content to return and render into the target
  * @property {string}  [contentType] - content type
- * @property {string}  [markup] - content to return and render into the target
- * @property {Pagelets~ResourcesResponse} [resources] - Listen to links within this container only
+ * @property {object}  [meta] - meta data provided by the backend, which can be read in events
+ * @property {object}  [reloadPagelet] - Reload pagelet containers by selectors
+ * @property {Pagelets~Response~Location} [location] - Set the window url
+ * @property {Pagelets~Response~Resources} [resources] - Resources that should be loaded into the document
  */
 
 /**
