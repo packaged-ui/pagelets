@@ -160,7 +160,10 @@ export function load(request)
               switch(e.type)
               {
                 case 'loadstart':
-                  _setPageletState(targetElement, _pageletStates.LOADING);
+                  _setPageletState(
+                    targetElement,
+                    targetElement.dataset.selfUri === request.url ? _pageletStates.REFRESHING : _pageletStates.LOADING
+                  );
                   break;
                 case 'progress':
                   _triggerEvent(targetElement, events.PROGRESS);
@@ -222,6 +225,7 @@ export function load(request)
           .then(
             () =>
             {
+              targetElement.dataset.selfUri = request.url;
               _setPageletState(targetElement, _pageletStates.NONE);
             });
 
