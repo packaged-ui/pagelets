@@ -26,11 +26,11 @@ const _pageletStates = {
 /**
  * Initialisation options
  * @typedef {Object} Pagelets~InitOptions
- * @property {?string}  selector - Which clicked elements to react to
- * @property {?string}  defaultTarget - If no data-target specified, which container to load the content into
- * @property {?boolean} allowPersistentTargets - If a page has been reloaded, allow pagelets to load into containers of the same name
- * @property {?Node}    listenElement - Listen to links within this container only
- * @property {int}      minRefreshRate - Minimum time to wait between pagelet refreshes
+ * @property {string}  [selector] - Which clicked elements to react to
+ * @property {string}  [defaultTarget] - If no data-target specified, which container to load the content into
+ * @property {boolean} [allowPersistentTargets] - If a page has been reloaded, allow pagelets to load into containers of the same name
+ * @property {Node}    [listenElement] - Listen to links within this container only
+ * @property {int}     [minRefreshRate] - Minimum time to wait between pagelet refreshes
  */
 
 /**
@@ -38,7 +38,6 @@ const _pageletStates = {
  */
 const _defaultOptions = {
   selector: '[data-uri],[data-target]',
-  defaultTarget: null,
   allowPersistentTargets: true,
   listenElement: document,
   minRefreshRate: 500,
