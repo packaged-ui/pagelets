@@ -37,7 +37,7 @@ const _pageletStates = {
  * @type {Pagelets~InitOptions}
  */
 const _defaultOptions = {
-  selector: '[data-uri],[data-target]',
+  selector: 'a[data-uri],button[data-uri],[href][data-target]',
   allowPersistentTargets: true,
   listenElement: document,
   minRefreshRate: 500,
@@ -85,7 +85,7 @@ let _options = Object.assign({}, _defaultOptions);
 
 /**
  * (Re)Initialize pagelets with specified options
- * @param {Pagelets~InitOptions} [options={}]
+ * @param {Pagelets~InitOptions} [options]
  */
 export function init(options = {})
 {
