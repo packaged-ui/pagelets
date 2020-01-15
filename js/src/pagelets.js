@@ -1,5 +1,6 @@
 import Request from '@packaged-ui/request';
-import History from "html5-history-api";
+import History from 'html5-history-api';
+import {loadCss, loadScripts} from './resources';
 
 const _location = History.location || window.location;
 
@@ -137,7 +138,7 @@ export function load(request)
 {
   request = _normalizeRequest(request);
   return new Promise(
-    (resolve, reject) =>
+    (resolve) =>
     {
       const targetElement = _resolveElement(request.targetElement);
       _setPageletState(targetElement, _pageletStates.REQUESTED);
@@ -197,36 +198,45 @@ export function load(request)
               const pageletObjects = {request: request, response: response};
               if(_triggerEvent(targetElement, events.RETRIEVED, pageletObjects))
               {
-                _handleResponse(targetElement, response);
-                _triggerEvent(targetElement, events.COMPLETE, pageletObjects)
-              }
+                _handleResponse(targetElement, response)
+                  .then(
+                    () =>
+                    {
+                      if(response.location)
+                      {
+                        if(response.location.reloadWindow)
+                        {
+                          if(response.location.replaceHistory)
+                          {
+                            _location.replace(response.location.url);
+                          }
+                          else
+                          {
+                            _location.assign(response.location.url);
+                          }
+                        }
+                        else
+                        {
+                          _pushState(
+                            targetElement,
+                            response.location.url,
+                            request.url,
+                            response.location.replaceHistory,
+                          );
+                        }
+                      }
+                      else
+                      {
+                        let requestPushUrl = request.pushUrl
+                          || (request.sourceElement ? request.sourceElement.getAttribute('href') : null);
+                        if(requestPushUrl)
+                        {
+                          _pushState(targetElement, requestPushUrl, request.url, false);
+                        }
+                      }
 
-              if(response.location)
-              {
-                if(response.location.reloadWindow)
-                {
-                  if(response.location.replaceHistory)
-                  {
-                    _location.replace(response.location.url);
-                  }
-                  else
-                  {
-                    _location.assign(response.location.url);
-                  }
-                }
-                else
-                {
-                  _pushState(targetElement, response.location.url, request.url, response.location.replaceHistory);
-                }
-              }
-              else
-              {
-                let requestPushUrl = request.pushUrl
-                  || (request.sourceElement ? request.sourceElement.getAttribute('href') : null);
-                if(requestPushUrl)
-                {
-                  _pushState(targetElement, requestPushUrl, request.url, false);
-                }
+                      _triggerEvent(targetElement, events.COMPLETE, pageletObjects);
+                    });
               }
               resolve(pageletObjects);
             })
@@ -238,10 +248,6 @@ export function load(request)
             });
 
         _triggerEvent(targetElement, events.REQUESTED);
-      }
-      else
-      {
-        reject('prepare was cancelled')
       }
     });
 }
@@ -277,7 +283,7 @@ function _refreshPagelet(element)
     {
       url: element.getAttribute('data-self-uri'),
       sourceElement: element,
-      targetElement: element
+      targetElement: element,
     });
 }
 
@@ -452,9 +458,9 @@ function _normalizeResponse(xhr)
 }
 
 /**
- *
  * @param {Element} pageletElement
  * @param {Pagelets~Response} response
+ * @return {Promise}
  * @private
  */
 function _handleResponse(pageletElement, response)
@@ -469,9 +475,26 @@ function _handleResponse(pageletElement, response)
       break;
   }
 
-  if(_triggerEvent(pageletElement, events.RENDERED, {response}))
-  {
-    _initialiseNewPagelets(pageletElement);
-    _queueRefresh(pageletElement);
-  }
+  return Promise
+    .all(
+      [
+        loadCss(response.resources && response.resources.css || []),
+        loadScripts(response.resources && response.resources.js || []),
+      ])
+    .then(
+      () =>
+      {
+        if(_triggerEvent(pageletElement, events.RENDERED, {response}))
+        {
+          _initialiseNewPagelets(pageletElement);
+          _queueRefresh(pageletElement);
+        }
+      })
+    .catch(
+      () =>
+      {
+        _setPageletState(pageletElement, _pageletStates.ERROR);
+        _triggerEvent(pageletElement, events.ERROR);
+      },
+    );
 }
