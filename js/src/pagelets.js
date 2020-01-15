@@ -393,15 +393,6 @@ function _triggerEvent(element, eventType, data = {})
   return element.dispatchEvent(new CustomEvent(eventType, {detail: data, bubbles: true, cancelable: true}));
 }
 
-function _normalizeTarget(id)
-{
-  if(!!id)
-  {
-    return '#' + id;
-  }
-  return 'body';
-}
-
 /**
  * @param {Pagelets~Request} request
  * @return {Pagelets~Request}
@@ -409,7 +400,7 @@ function _normalizeTarget(id)
  */
 function _normalizeRequest(request)
 {
-  request.targetElement = request.targetElement || _normalizeTarget(_options.defaultTarget);
+  request.targetElement = request.targetElement || (_options.defaultTarget && '#' + _options.defaultTarget) || 'body';
   return request;
 }
 
