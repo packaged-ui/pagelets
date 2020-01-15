@@ -107,7 +107,7 @@ export function init(options = {})
               url: link.getAttribute('data-uri') || link.getAttribute('href'),
               pushUrl: link.getAttribute('href'),
               sourceElement: link,
-              targetElement: _normalizeTarget(link.getAttribute('data-target')),
+              targetElement: link.getAttribute('data-target'),
             });
         }
       }
