@@ -218,11 +218,15 @@ function _doInit()
 }
 
 /**
- * @param {PageletRequest} request
+ * @param {PageletRequest|Object} request
  * @private
  */
 export function load(request)
 {
+  if(!(request instanceof PageletRequest))
+  {
+    request = new PageletRequest(request);
+  }
   return new Promise(
     (resolve) =>
     {
