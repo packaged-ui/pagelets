@@ -7,7 +7,7 @@
       document.addEventListener(
         Pagelets.events[eventName], function (e)
         {
-          console.log(e.type, e.target);
+          console.log(e.type, e.detail);
         },
       );
     }
@@ -16,7 +16,7 @@
 </head>
 <body>
 
-<div data-self-uri="nav.html"></div>
+<div data-self-uri="nav.json"></div>
 
 <div id="container" data-self-uri="index_content.html">
   default text
