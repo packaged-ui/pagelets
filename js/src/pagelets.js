@@ -95,7 +95,7 @@ const _defaultOptions = {
 /**
  * @augments {Pagelets~Request}
  */
-export class PageletRequest extends EventTarget
+class PageletRequest extends EventTarget
 {
   /**
    * @param {Pagelets~Request} [properties]
@@ -138,6 +138,8 @@ export class PageletRequest extends EventTarget
     return (this.triggerOnRequest ? this : _options.listenElement).dispatchEvent(event);
   }
 }
+
+export {PageletRequest as Request};
 
 /**
  * @augments {Pagelets~Response}
