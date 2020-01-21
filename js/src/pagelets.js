@@ -332,7 +332,6 @@ export function load(request)
           .then(
             () =>
             {
-              targetElement.setAttribute('data-self-uri', request.url);
               _setPageletState(targetElement, _pageletStates.NONE);
             });
 
@@ -484,16 +483,10 @@ function _createResponseFromXhr(xhr)
     case '':
     case 'text/plain':
     case 'text/html':
-      return new PageletResponse(
-        {
-          contentType: contentType || 'text/plain',
-          content: responseString,
-        });
+      return new PageletResponse({content: responseString});
     case 'application/json':
     case 'application/javascript':
-      const parsed = JSON.parse(responseString);
-      parsed.contentType = 'text/html';
-      return new PageletResponse(parsed);
+      return new PageletResponse(JSON.parse(responseString));
     default:
       throw 'not a valid response';
   }
@@ -510,15 +503,8 @@ function _handleResponse(request, response)
   const targetElement = request.getResolvedTarget;
   if(response.hasOwnProperty('content'))
   {
-    switch(response.contentType)
-    {
-      case 'text/plain':
-        targetElement.textContent = response.content;
-        break;
-      case 'text/html':
-        targetElement.innerHTML = response.content;
-        break;
-    }
+    targetElement.innerHTML = response.content;
+    targetElement.setAttribute('data-self-uri', request.url);
   }
 
   return Promise
