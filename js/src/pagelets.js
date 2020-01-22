@@ -507,6 +507,25 @@ function _handleResponse(request, response)
     targetElement.setAttribute('data-self-uri', request.url);
   }
 
+  if(response.hasOwnProperty('reloadPagelet'))
+  {
+    Object.keys(response.reloadPagelet)
+          .forEach(
+            (key) =>
+            {
+              const reloadTarget = response.reloadPagelet[key];
+              const pagelet = _options.listenElement.querySelector('#' + key);
+              if(pagelet)
+              {
+                load(new PageletRequest(
+                  {
+                    url: reloadTarget ? reloadTarget : pagelet.getAttribute('data-self-uri'),
+                    targetElement: key,
+                  }));
+              }
+            });
+  }
+
   return Promise
     .all(
       [

@@ -1,6 +1,6 @@
-document
-  .querySelector('#custom-request')
-  .addEventListener('click', function ()
+document.addEventListener('click', function (e)
+{
+  if(e.target.matches('#custom-request'))
   {
     const request = new Pagelets.Request(
       {
@@ -19,4 +19,5 @@ document
     });
 
     Pagelets.load(request);
-  });
+  }
+});
