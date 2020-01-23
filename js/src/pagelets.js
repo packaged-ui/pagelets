@@ -242,6 +242,13 @@ export function load(request)
 
       if(request.triggerEvent(events.PREPARE))
       {
+        if((!request.url) || request.url.match(/^#/))
+        {
+          _setPageletState(targetElement, _pageletStates.ERROR);
+          request.triggerEvent(events.ERROR, {error: 'invalid url'});
+          return;
+        }
+
         const req = targetElement.pageletRequest = (new Request());
         req
           .setUrl(request.url)
