@@ -4,5 +4,5 @@
       "nav.js"
     ]
   },
-  "content": "<button href=\"index.html\" data-uri=\"index_content.html\" data-target=\"container\">reload body<\/button>\r\n<a href=\"page1.html\" data-uri=\"page1_content.text\" data-target=\"container\">page 1 (text)<\/a>\r\n<a href=\"page2.html\" data-uri=\"page2_content.html\" data-target=\"container\">page 2 (html)<\/a>\r\n<a href=\"page3.html\" data-uri=\"page3_content.json\" data-target=\"container\">page 3 (json)<\/a>\r\n<button id=\"custom-request\">Click me<\/button>"
+  "content": "<button href=\"index.html\" data-uri=\"index_content.html\" data-target=\"container\">reload body<\/button>\r\n<a href=\"page1.html\" data-uri=\"page1_content.text\" data-target=\"container\">page 1 (text)<\/a>\r\n<a href=\"page2.html\" data-uri=\"page2_content.html\" data-target=\"container\">page 2 (html)<\/a>\r\n<a href=\"page3.html\" data-uri=\"page3_content.json\" data-target=\"container\">page 3 (json)<\/a>\r\n<a href=\"nope\" data-uri=\"#\">Invalid<\/button>\r\n<button id=\"custom-request\">Click me<\/button>"
 }

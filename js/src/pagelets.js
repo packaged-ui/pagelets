@@ -449,10 +449,6 @@ window.addEventListener('popstate', (d) =>
       _location.replace(state.pushUrl);
     }
   }
-  else
-  {
-    _location.reload();
-  }
 });
 
 function _randomString(length)
