@@ -167,7 +167,7 @@ export function init(options = {})
     return;
   }
   _isInitialized = true;
-  _doInit();
+  _doInit() || document.addEventListener('readystatechange', _doInit);
 }
 
 function _doInit()
@@ -204,17 +204,9 @@ function _doInit()
     );
 
     _initialiseNewPagelets();
+    return true;
   }
-  else
-  {
-    document.addEventListener('readystatechange', () =>
-    {
-      if(document.readyState === 'complete')
-      {
-        _doInit();
-      }
-    });
-  }
+  return false;
 }
 
 /**
