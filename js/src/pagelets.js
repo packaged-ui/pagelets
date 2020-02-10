@@ -43,6 +43,9 @@ import {loadCss, loadScripts} from './resources';
 /**
  * Pagelet Response
  * @typedef {Object} Pagelets~Response
+ * @property {number}  status - HTTP status code
+ * @property {string}  statusText - HTTP status message
+ * @property {object}  headers - HTTP response headers
  * @property {string}  [content] - content to return and render into the target
  * @property {string}  [contentType] - content type
  * @property {object}  [meta] - meta data provided by the backend, which can be read in events
@@ -473,18 +476,37 @@ function _createResponseFromXhr(xhr)
 
   const responseString = xhr.responseText.replace(/^while\(1\);|for\(;;\);|\)]}'/, '');
 
+  const xhrProps = {
+    status: xhr.status,
+    statusText: xhr.statusText,
+    headers: _headersToObject(xhr.getAllResponseHeaders()),
+  };
+
   switch(contentType)
   {
     case '':
     case 'text/plain':
     case 'text/html':
-      return new PageletResponse({content: responseString});
+      return new PageletResponse(Object.assign({content: responseString}, xhrProps));
     case 'application/json':
     case 'application/javascript':
-      return new PageletResponse(JSON.parse(responseString));
+      return new PageletResponse(Object.assign(JSON.parse(responseString), xhrProps));
     default:
       throw 'not a valid response';
   }
+}
+
+function _headersToObject(headers)
+{
+  const headerMap = {};
+  headers.trim().split(/[\r\n]+/).forEach(
+    (line) =>
+    {
+      const parts = line.split(': ');
+      const header = parts.shift();
+      headerMap[header] = parts.join(': ');
+    });
+  return headerMap;
 }
 
 /**
