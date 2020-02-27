@@ -25,7 +25,7 @@ class PageletResponse implements JsonSerializable
     return $this;
   }
 
-  public function setLocation($url, $replaceHistory = false, $reloadWindow = false)
+  public function setLocation(string $url, $replaceHistory = false, $reloadWindow = false)
   {
     $this->_data['location']['url'] = $url;
     $this->_data['location']['replaceHistory'] = $replaceHistory;
