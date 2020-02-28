@@ -253,6 +253,7 @@ export function load(request)
               'x-requested-with': 'XMLHttpRequest',
               'x-pagelet-request': '1',
               'x-pagelet-target': targetSelector,
+              'x-pagelet-fragment': request.url.replace(/^.*?(#|$)/, ''),
             })
           .setEventCallback(
             (e) =>
