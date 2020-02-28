@@ -46,7 +46,7 @@ import {loadCss, loadScripts} from './resources';
  * @property {number}  status - HTTP status code
  * @property {string}  statusText - HTTP status message
  * @property {object}  headers - HTTP response headers
- * @property {string}  [content] - content to return and render into the target
+ * @property {object}  [content] - content to return and render into the target
  * @property {string}  [contentType] - content type
  * @property {object}  [meta] - meta data provided by the backend, which can be read in events
  * @property {object}  [reloadPagelet] - Reload pagelet containers by selectors
@@ -521,8 +521,31 @@ function _handleResponse(request, response)
   const targetElement = request.getResolvedTarget;
   if(response.hasOwnProperty('content'))
   {
-    targetElement.innerHTML = response.content;
-    targetElement.setAttribute('data-self-uri', request.url);
+    if(typeof (response.content) === 'object')
+    {
+      if(response.content[''])
+      {
+        targetElement.innerHTML = response.content[''];
+        targetElement.setAttribute('data-self-uri', request.url);
+      }
+      Object.keys(response.content).forEach(
+        (key) =>
+        {
+          if(key)
+          {
+            let targetEle, target = response.content[key];
+            if(target && (targetEle = _options.listenElement.querySelector('#' + key)))
+            {
+              targetEle.innerHTML = response.content[key];
+            }
+          }
+        });
+    }
+    else
+    {
+      targetElement.innerHTML = response.content;
+      targetElement.setAttribute('data-self-uri', request.url);
+    }
   }
 
   if(response.hasOwnProperty('reloadPagelet'))

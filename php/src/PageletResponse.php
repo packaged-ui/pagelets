@@ -13,10 +13,15 @@ class PageletResponse implements JsonSerializable
     return new static();
   }
 
-  public function setContent($content)
+  public function setContent($content, string $target = '')
   {
-    $this->_data['content'] = $content;
+    $this->_data['content'][$target] = $content;
     return $this;
+  }
+
+  public function getContent(string $target = '')
+  {
+    return $this->_data['content'][$target] ?? null;
   }
 
   public function addPageletReload($target, $url = null)
@@ -60,5 +65,10 @@ class PageletResponse implements JsonSerializable
   public function jsonSerialize()
   {
     return (object)$this->_data;
+  }
+
+  public function __toString()
+  {
+    return ")]}'" . json_encode($this);
   }
 }

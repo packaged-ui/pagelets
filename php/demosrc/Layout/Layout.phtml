@@ -1,0 +1,75 @@
+<?php
+/**
+ * @var $this \PackagedUI\PageletsDemo\Layout\Layout
+ */
+
+use Packaged\Dispatch\Dispatch;
+use Packaged\Dispatch\ResourceStore;
+
+?>
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <?= Dispatch::instance()->store()->generateHtmlIncludes(ResourceStore::TYPE_CSS) ?>
+</head>
+<body class="demo-page">
+
+<div>
+  <button href="/text" data-target="container">page 1 (text)</button>
+  <button href="/html" data-target="container">page 2 (html)</button>
+  <button href="/pagelet" data-target="container">page 3 (json)</button>
+  <button href="#test" data-target="container">hash only (does nothing)</button>
+  <button id="custom-request">Custom + Meta</button>
+  <a href="/">reload</a>
+</div>
+
+<label>
+  Other Content: <span id="other">none</span>
+</label>
+<div id="container">
+  <?= $this->getContent(); ?>
+</div>
+
+
+<?= Dispatch::instance()->store()->generateHtmlIncludes(ResourceStore::TYPE_JS); ?>
+<script>
+  for(let eventName in Pagelets.events)
+  {
+    document.addEventListener(
+      Pagelets.events[eventName], function (e)
+      {
+        console.log(e.type, e.detail);
+      },
+    );
+  }
+  Pagelets.init();
+
+  document.addEventListener('click', function (e)
+  {
+    if(e.target.matches('#custom-request'))
+    {
+      const request = new Pagelets.Request(
+        {
+          url: '/custom',
+          targetElement: 'container',
+          triggerOnRequest: true,
+        });
+
+      request.addEventListener(Pagelets.events.RETRIEVED, function (e)
+      {
+        e.detail.response.content[''] = '';
+        for(let a in e.detail.response.meta.items)
+        {
+          e.detail.response.content[''] += `<div>${e.detail.response.meta.items[a]}</div>`;
+        }
+      });
+
+      Pagelets.load(request);
+    }
+  });
+
+</script>
+</body>
+</html>

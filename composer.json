@@ -17,7 +17,10 @@
     "ext-json": "*"
   },
   "require-dev": {
-    "phpunit/phpunit": "^6.0"
+    "phpunit/phpunit": "^6.0",
+    "cubex/framework": "^4.3",
+    "packaged/dispatch": "^2.10",
+    "packaged/glimpse": "^2.7"
   },
   "autoload": {
     "psr-4": {
@@ -26,7 +29,8 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "PackagedUI\\PageletsTest\\": "php/tests"
+      "PackagedUI\\PageletsTest\\": "php/tests",
+      "PackagedUI\\PageletsDemo\\": "php/demosrc"
     }
   }
 }
