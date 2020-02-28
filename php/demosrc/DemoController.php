@@ -6,7 +6,7 @@ use Cubex\Controller\Controller;
 use Packaged\Context\Context;
 use Packaged\Glimpse\Tags\Text\BoldText;
 use Packaged\Http\Response;
-use Packaged\Http\Responses\TextResponse;
+use Packaged\Http\Responses\JsonResponse;
 use Packaged\SafeHtml\SafeHtml;
 use PackagedUI\Pagelets\PageletResponse;
 use PackagedUI\PageletsDemo\Layout\Layout;
@@ -29,12 +29,12 @@ class DemoController extends Controller
 
   public function getText()
   {
-    return TextResponse::create('this is a text/plain response');
+    return 'this is a text/plain response';
   }
 
   public function getHtml()
   {
-    return Response::create('this is a text/html response');
+    return 'this is a text/html response';
   }
 
   public function getPagelet()
@@ -58,7 +58,6 @@ class DemoController extends Controller
       {
         $result = $result->getContent();
       }
-
       if($result instanceof PageletResponse)
       {
         $result = $result->getContent();
@@ -66,15 +65,13 @@ class DemoController extends Controller
 
       $theme = $this->_createTheme();
       $theme->setContext($this->getContext())->setContent($result);
+
       return parent::_prepareResponse($c, $theme, $buffer);
     }
-
-    if($result instanceof PageletResponse)
+    else if($result instanceof PageletResponse)
     {
-      $result = Response::create((string)$result);
-      $result->headers->set("Content-Type", "application/json");
+      $result = JsonResponse::prefixed($result);
     }
-
     return parent::_prepareResponse($c, $result, $buffer);
   }
 
