@@ -237,7 +237,7 @@ export function load(request)
 
       if(request.triggerEvent(events.PREPARE))
       {
-        if((!request.url) || request.url.match(/^#/))
+        if((!request.url) || /^#/.test(request.url))
         {
           _setPageletState(targetElement, _pageletStates.ERROR);
           request.triggerEvent(events.ERROR, {error: 'invalid url'});
