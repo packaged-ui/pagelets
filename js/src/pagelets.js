@@ -533,8 +533,8 @@ function _handleResponse(request, response)
         {
           if(key)
           {
-            let targetEle, target = response.content[key];
-            if(target && (targetEle = _options.listenElement.querySelector('#' + key)))
+            let targetEle = _options.listenElement.querySelector('#' + key);
+            if(targetEle)
             {
               targetEle.innerHTML = response.content[key];
             }
