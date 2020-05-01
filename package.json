@@ -12,6 +12,7 @@
   "devDependencies": {
     "@babel/core": "^7.7.7",
     "@babel/preset-env": "^7.7.7",
+    "@ungap/event-target": "^0.1.0",
     "core-js": "3",
     "rollup": "^1.28.0",
     "rollup-plugin-babel": "^4.3.3",
