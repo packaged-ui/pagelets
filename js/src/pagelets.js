@@ -1,5 +1,6 @@
 import Request from '@packaged-ui/request';
 import History from 'html5-history-api';
+import EventTarget from '@ungap/event-target'
 import {loadCss, loadScripts} from './resources';
 
 /**
