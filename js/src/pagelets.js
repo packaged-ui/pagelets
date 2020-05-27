@@ -1,6 +1,6 @@
 import Request from '@packaged-ui/request';
 import History from 'html5-history-api';
-import EventTarget from '@ungap/event-target'
+import EventTarget from '@ungap/event-target';
 import {loadCss, loadScripts} from './resources';
 
 /**
@@ -122,6 +122,11 @@ class PageletRequest extends EventTarget
     const targetId = this.targetElement || _options.defaultTarget;
     const target = (targetId && '#' + targetId) || 'body';
     return _options.listenElement.querySelector(target);
+  }
+
+  getRequestMethod()
+  {
+    return this.method || (this.data ? Request.POST : Request.GET);
   }
 
   get getPushUrl()
@@ -248,7 +253,7 @@ export function load(request)
         const req = targetElement.pageletRequest = (new Request());
         req
           .setUrl(request.url)
-          .setMethod(request.method || (request.data ? Request.POST : Request.GET))
+          .setMethod(request.getRequestMethod())
           .setHeaders(
             {
               'x-requested-with': 'XMLHttpRequest',
@@ -527,7 +532,10 @@ function _handleResponse(request, response)
       if(response.content[''])
       {
         targetElement.innerHTML = response.content[''];
-        targetElement.setAttribute('data-self-uri', request.url);
+        if(request.getRequestMethod() === Request.GET)
+        {
+          targetElement.setAttribute('data-self-uri', request.url);
+        }
       }
       Object.keys(response.content).forEach(
         (key) =>
@@ -545,7 +553,10 @@ function _handleResponse(request, response)
     else
     {
       targetElement.innerHTML = response.content;
-      targetElement.setAttribute('data-self-uri', request.url);
+      if(request.getRequestMethod() === Request.GET)
+      {
+        targetElement.setAttribute('data-self-uri', request.url);
+      }
     }
   }
 
