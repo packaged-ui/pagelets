@@ -119,9 +119,7 @@ class PageletRequest extends EventTarget
     {
       return this.targetElement;
     }
-    const targetId = this.targetElement || _options.defaultTarget;
-    const target = (targetId && '#' + targetId) || 'body';
-    return _options.listenElement.querySelector(target);
+    return _resolveTarget(this.targetElement || _options.defaultTarget);
   }
 
   getRequestMethod()
@@ -184,7 +182,7 @@ function _doInit()
   if(document.readyState === 'complete')
   {
     _pushState(
-      _options.listenElement.querySelector((_options.defaultTarget && '#' + _options.defaultTarget) || 'body'),
+      _resolveTarget(_options.defaultTarget),
       window.location.toString(),
       window.location.toString(),
       true,
@@ -269,7 +267,7 @@ export function load(request)
                 case 'loadstart':
                   _setPageletState(
                     targetElement,
-                    targetElement.getAttribute('data-self-uri') === request.url ? _pageletStates.REFRESHING : _pageletStates.LOADING
+                    targetElement.getAttribute('data-self-uri') === request.url ? _pageletStates.REFRESHING : _pageletStates.LOADING,
                   );
                   break;
                 case 'progress':
@@ -370,7 +368,7 @@ function _queueRefresh(element)
   if(element.hasAttribute('data-refresh'))
   {
     const refreshTime = Math.max(_options.minRefreshRate, element.getAttribute('data-refresh'));
-    setTimeout(() => {_refreshPagelet(element)}, refreshTime);
+    setTimeout(() => _refreshPagelet(element), refreshTime);
   }
 }
 
@@ -468,6 +466,11 @@ function _randomString(length)
     string += parseInt(Math.random().toFixed(16).slice(2, 19)).toString(36);
   }
   return string.slice(0, length);
+}
+
+function _resolveTarget(targetId)
+{
+  return (targetId && _options.listenElement.querySelector('#' + targetId)) || document.body;
 }
 
 /**
