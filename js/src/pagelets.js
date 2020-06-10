@@ -249,7 +249,7 @@ export function formSubmit(formElement)
         .join('&');
     request.pushUrl = request.url;
   }
-  Pagelets.load(request).catch((error) => console.log(error));
+  load(request).catch((error) => console.log(error));
 }
 
 /**
