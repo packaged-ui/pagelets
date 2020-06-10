@@ -9,6 +9,7 @@ import {loadCss, loadScripts} from './resources';
  * @property {string}  [selector] - Which clicked elements to react to
  * @property {string}  [defaultTarget] - If no data-target specified, which container to load the content into
  * @property {boolean} [allowPersistentTargets] - If a page has been reloaded, allow pagelets to load into containers of the same name
+ * @property {boolean} [handleForms] - Forms with a data-uri will be submitted via pagelets
  * @property {Node}    [listenElement] - Listen to links within this container only
  * @property {int}     [minRefreshRate] - Minimum time to wait between pagelet refreshes
  */
@@ -92,6 +93,7 @@ const _pageletStates = {
 const _defaultOptions = {
   selector: 'a[data-uri],button[data-uri],[href][data-target]',
   allowPersistentTargets: true,
+  handleForms: true,
   listenElement: document,
   minRefreshRate: 500,
 };
@@ -210,10 +212,44 @@ function _doInit()
       },
     );
 
+    _options.listenElement.addEventListener(
+      'submit',
+      (e) =>
+      {
+        if(_options.handleForms && e.target instanceof HTMLFormElement && e.target.hasAttribute('data-uri'))
+        {
+          formSubmit(e.target);
+          e.preventDefault();
+        }
+      },
+    );
+
     _initialiseNewPagelets();
     return true;
   }
   return false;
+}
+
+export function formSubmit(formElement)
+{
+  const formData = new FormData(formElement);
+  let url = String(formElement.getAttribute('data-uri'));
+  const request = new PageletRequest(
+    {
+      url: url,
+      sourceElement: formElement,
+      data: formData,
+      method: String(formElement.method),
+    });
+  if(formElement.method.toLowerCase() === Request.GET)
+  {
+    request.url = url + (url.indexOf('?') > -1 ? '&' : '?')
+      + [...formData.entries()]
+        .map(e => `${encodeURIComponent(e[0])}=${encodeURIComponent(String(e[1]))}`)
+        .join('&');
+    request.pushUrl = request.url;
+  }
+  Pagelets.load(request).catch((error) => console.log(error));
 }
 
 /**
