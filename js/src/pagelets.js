@@ -25,6 +25,7 @@ import {loadCss, loadScripts} from './resources';
  * @property {{}}  [headers] - object containing custom headers for the request
  * @property {{}}  [data]    - object containing post data
  * @property {string}  [method]  - request method to use
+ * @property {boolean}  [withCredentials]  - set withCredentials
  */
 
 /**
@@ -284,9 +285,9 @@ export function load(request)
           return;
         }
 
-        const req = targetElement.pageletRequest = (new Request());
+        const req = targetElement.pageletRequest = (new Request(request.url));
         req
-          .setUrl(request.url)
+          .setWithCredentials(request.withCredentials)
           .setMethod(request.getRequestMethod())
           .setHeaders(
             {
