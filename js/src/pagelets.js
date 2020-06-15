@@ -269,6 +269,7 @@ export function load(request)
       const targetElement = request.getResolvedTarget;
       _setPageletState(targetElement, _pageletStates.REQUESTED);
 
+      // abort current request
       if(targetElement.pageletRequest)
       {
         targetElement.pageletRequest.abort();
@@ -284,6 +285,9 @@ export function load(request)
           request.triggerEvent(events.ERROR, {error: 'invalid url'});
           return;
         }
+
+        // clear any existing timeout while we make a new request
+        _clearRefresh(targetElement);
 
         const req = targetElement.pageletRequest = (new Request(request.url));
         req
@@ -395,17 +399,28 @@ function _initialiseNewPagelets(parentElement)
       if(!pageletElement.pageletInitialized)
       {
         pageletElement.pageletInitialized = true;
-        _refreshPagelet(pageletElement);
+        refresh(pageletElement);
       }
     });
 }
+
+const _refreshHandlers = new Map();
 
 function _queueRefresh(element)
 {
   if(element.hasAttribute('data-refresh'))
   {
+    _clearRefresh(element);
     const refreshTime = Math.max(_options.minRefreshRate, element.getAttribute('data-refresh'));
-    setTimeout(() => _refreshPagelet(element), refreshTime);
+    _refreshHandlers.set(element, setTimeout(() => refresh(element), refreshTime));
+  }
+}
+
+function _clearRefresh(element)
+{
+  if(_refreshHandlers.has(element))
+  {
+    clearTimeout(_refreshHandlers.get(element));
   }
 }
 
@@ -413,14 +428,18 @@ function _queueRefresh(element)
  * @param {Element} element
  * @private
  */
-function _refreshPagelet(element)
+export function refresh(element)
 {
-  load(new PageletRequest(
-    {
-      url: element.getAttribute('data-self-uri'),
-      sourceElement: element,
-      targetElement: element,
-    }));
+  const url = element.getAttribute('data-self-uri');
+  if(url)
+  {
+    load(new PageletRequest(
+      {
+        url: element.getAttribute('data-self-uri'),
+        sourceElement: element,
+        targetElement: element,
+      }));
+  }
 }
 
 function _setPageletState(element, state)
