@@ -253,6 +253,8 @@ export function formSubmit(formElement)
   load(request).catch((error) => console.log(error));
 }
 
+const _currentRequests = new Map();
+
 /**
  * @param {PageletRequest|Object} request
  * @private
@@ -269,14 +271,6 @@ export function load(request)
       const targetElement = request.getResolvedTarget;
       _setPageletState(targetElement, _pageletStates.REQUESTED);
 
-      // abort current request
-      if(targetElement.pageletRequest)
-      {
-        targetElement.pageletRequest.abort();
-      }
-
-      const targetSelector = targetElement.getAttribute('id') || '';
-
       if(request.triggerEvent(events.PREPARE))
       {
         if((!request.url) || /^#/.test(request.url))
@@ -289,7 +283,16 @@ export function load(request)
         // clear any existing timeout while we make a new request
         _clearRefresh(targetElement);
 
-        const req = targetElement.pageletRequest = (new Request(request.url));
+        // abort current request
+        if(_currentRequests.has(targetElement))
+        {
+          _currentRequests.get(targetElement).abort();
+          _currentRequests.delete(targetElement);
+        }
+
+        const req = (new Request(request.url));
+        _currentRequests.set(targetElement, req);
+
         req
           .setWithCredentials(request.withCredentials)
           .setMethod(request.getRequestMethod())
@@ -297,7 +300,7 @@ export function load(request)
             {
               'x-requested-with': 'XMLHttpRequest',
               'x-pagelet-request': '1',
-              'x-pagelet-target': targetSelector,
+              'x-pagelet-target': targetElement.getAttribute('id') || '',
               'x-pagelet-fragment': request.url.replace(/^.*?(#|$)/, ''),
             })
           .setEventCallback(
@@ -381,6 +384,16 @@ export function load(request)
             () =>
             {
               _setPageletState(targetElement, _pageletStates.NONE);
+            })
+          .catch(
+            (e) =>
+            {
+              if(e && e.statusText)
+              {
+                console.warn(e.statusText);
+              }
+              _setPageletState(targetElement, _pageletStates.ERROR);
+              request.triggerEvent(events.ERROR);
             });
 
         request.triggerEvent(events.REQUESTED);
