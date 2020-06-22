@@ -241,6 +241,7 @@ export function formSubmit(formElement)
       sourceElement: formElement,
       data: formData,
       method: String(formElement.method),
+      targetElement: formElement.getAttribute('data-target'),
     });
   if(formElement.method.toLowerCase() === Request.GET)
   {
