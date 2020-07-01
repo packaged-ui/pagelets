@@ -147,6 +147,34 @@ class PageletRequest extends EventTarget
     );
     return (this.triggerOnRequest ? this : _options.listenElement).dispatchEvent(event);
   }
+
+  static fromElement(element)
+  {
+    let url = String(element.getAttribute('data-uri'));
+    const request = new PageletRequest(
+      {
+        url:           url,
+        sourceElement: element,
+        targetElement: element.getAttribute('data-target'),
+      });
+
+    if(element instanceof HTMLFormElement)
+    {
+      const formData = new FormData(element);
+      request.data = formData;
+      request.method = String(element.method);
+
+      if(element.method.toLowerCase() === Request.GET)
+      {
+        request.url = url + (url.indexOf('?') > -1 ? '&' : '?')
+          + [...formData.entries()]
+            .map(e => `${encodeURIComponent(e[0])}=${encodeURIComponent(String(e[1]))}`)
+            .join('&');
+        request.pushUrl = request.url;
+      }
+    }
+    return request
+  }
 }
 
 export {PageletRequest as Request};
@@ -231,27 +259,11 @@ function _doInit()
   return false;
 }
 
+/** @deprecated */
 export function formSubmit(formElement)
 {
-  const formData = new FormData(formElement);
-  let url = String(formElement.getAttribute('data-uri'));
-  const request = new PageletRequest(
-    {
-      url: url,
-      sourceElement: formElement,
-      data: formData,
-      method: String(formElement.method),
-      targetElement: formElement.getAttribute('data-target'),
-    });
-  if(formElement.method.toLowerCase() === Request.GET)
-  {
-    request.url = url + (url.indexOf('?') > -1 ? '&' : '?')
-      + [...formData.entries()]
-        .map(e => `${encodeURIComponent(e[0])}=${encodeURIComponent(String(e[1]))}`)
-        .join('&');
-    request.pushUrl = request.url;
-  }
-  load(request).catch((error) => console.log(error));
+  console.warn("formSubmit has been deprecated");
+  load(PageletRequest.fromElement(formElement)).catch((error) => console.log(error));
 }
 
 const _currentRequests = new Map();
