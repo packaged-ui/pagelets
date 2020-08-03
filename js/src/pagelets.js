@@ -247,7 +247,7 @@ function _doInit()
       {
         if(_options.handleForms && e.target instanceof HTMLFormElement && e.target.hasAttribute('data-uri'))
         {
-          formSubmit(e.target);
+          load(PageletRequest.fromElement(e.target)).catch((error) => console.log(error));
           e.preventDefault();
         }
       },
