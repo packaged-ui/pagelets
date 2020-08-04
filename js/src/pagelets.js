@@ -138,12 +138,13 @@ class PageletRequest extends EventTarget
   /**
    * @param {string} eventType
    * @param {object=} [data={}]
+   * @param {boolean=} [cancelable=false]
    */
-  triggerEvent(eventType, data)
+  triggerEvent(eventType, data = {}, cancelable = false)
   {
     const event = new CustomEvent(
       eventType,
-      {detail: Object.assign({}, data, {request: this}), bubbles: true, cancelable: true},
+      {detail: Object.assign({}, data, {request: this}), bubbles: true, cancelable: cancelable},
     );
     return (this.triggerOnRequest ? this : _options.listenElement).dispatchEvent(event);
   }
@@ -284,7 +285,7 @@ export function load(request)
       const targetElement = request.getResolvedTarget;
       _setPageletState(targetElement, _pageletStates.REQUESTED);
 
-      if(request.triggerEvent(events.PREPARE))
+      if(request.triggerEvent(events.PREPARE, {}, true))
       {
         if((!request.url) || /^#/.test(request.url))
         {
@@ -350,7 +351,7 @@ export function load(request)
               _setPageletState(targetElement, _pageletStates.LOADED);
               const response = _createResponseFromXhr(xhr);
               const pageletObjects = {request: request, response: response};
-              if(request.triggerEvent(events.RETRIEVED, pageletObjects))
+              if(request.triggerEvent(events.RETRIEVED, pageletObjects, true))
               {
                 _handleResponse(request, response)
                   .then(
@@ -673,7 +674,7 @@ function _handleResponse(request, response)
     .then(
       () =>
       {
-        if(request.triggerEvent(events.RENDERED, {response}))
+        if(request.triggerEvent(events.RENDERED, {response}, true))
         {
           _initialiseNewPagelets(targetElement);
           _queueRefresh(targetElement);
