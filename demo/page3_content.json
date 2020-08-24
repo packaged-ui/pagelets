@@ -24,7 +24,7 @@
       "action": "resource",
       "type": "css",
       "inline": true,
-      "data": "body{text-color:blue}"
+      "data": "body{color:blue}"
     },
     {
       "action": "my-items",
