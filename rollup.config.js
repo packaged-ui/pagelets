@@ -5,9 +5,9 @@ import commonjs from '@rollup/plugin-commonjs';
 process.chdir(__dirname);
 
 const defaultCfg = {
-  input: './dist.js',
+  input: './demo/demo.js',
   output: {
-    file: './dist/pagelets.min.js',
+    file: './demo/demo.min.js',
     name: 'Pagelets',
     format: 'iife',
   },

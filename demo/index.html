@@ -1,18 +1,6 @@
 <html>
 <head>
-  <script src="../dist/pagelets.min.js"></script>
-  <script>
-    for(let eventName in Pagelets.events)
-    {
-      document.addEventListener(
-        Pagelets.events[eventName], function (e)
-        {
-          console.log(e.type, e.detail);
-        },
-      );
-    }
-    Pagelets.init();
-  </script>
+  <script src="./demo.min.js"></script>
 </head>
 <body>
 
@@ -20,7 +8,7 @@
 
 <div id="nav" data-self-uri="nav.json"></div>
 
-<div id="container" data-self-uri="index_content.html" data-refresh="2000">
+<div id="container" data-self-uri="index_content.html" data-refresh="5000">
   default text
 </div>
 </body>

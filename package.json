@@ -9,6 +9,15 @@
   },
   "license": "MIT",
   "private": false,
+  "files": [
+    "index.js",
+    "js/"
+  ],
+  "dependencies": {
+    "@packaged-ui/request": "^0.1.1",
+    "@ungap/event-target": "^0.2.0",
+    "html5-history-api": "^4.2.10"
+  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^13.0.0",
     "@rollup/plugin-node-resolve": "^8.0.1",
@@ -18,10 +27,5 @@
   },
   "scripts": {
     "build": "rollup -c rollup.config.js"
-  },
-  "dependencies": {
-    "@packaged-ui/request": "^0.1.1",
-    "@ungap/event-target": "^0.2.0",
-    "html5-history-api": "^4.2.10"
   }
 }

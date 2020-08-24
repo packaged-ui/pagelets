@@ -18,11 +18,6 @@ function _loadScript(url)
     });
 }
 
-export function loadScripts(arr)
-{
-  return _loadMultiple(arr, _filterScripts, _loadScript);
-}
-
 function _filterCss(arr)
 {
   return arr
@@ -41,11 +36,6 @@ function _loadCss(url)
       se.addEventListener('error', reject);
       document.getElementsByTagName('head')[0].appendChild(se);
     });
-}
-
-export function loadCss(arr)
-{
-  return _loadMultiple(arr, _filterCss, _loadCss);
 }
 
 function _loadMultiple(arr, filterFn, loadFn)
@@ -83,4 +73,14 @@ function _loadMultiple(arr, filterFn, loadFn)
           .catch(reject);
       }
     });
+}
+
+export function loadScripts(arr)
+{
+  return _loadMultiple(arr, _filterScripts, _loadScript);
+}
+
+export function loadCss(arr)
+{
+  return _loadMultiple(arr, _filterCss, _loadCss);
 }

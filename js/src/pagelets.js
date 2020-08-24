@@ -1,23 +1,30 @@
 import Request from '@packaged-ui/request';
 import History from 'html5-history-api';
 import EventTarget from '@ungap/event-target';
-import {loadCss, loadScripts} from './resources';
+import {ActionIterator} from './actions/actionIterator';
+import {getStateElement, pushState} from './pushState';
+import {ContentActionProcessor} from './actions/builtin/content-processor';
+import {LocationActionProcessor} from './actions/builtin/location-processor';
+import {ResourceActionProcessor} from './actions/builtin/resource-processor';
+import {RefreshActionProcessor} from './actions/builtin/refresh-processor';
 
 /**
  * Initialisation options
  * @typedef {Object} Pagelets~InitOptions
- * @property {string}  [selector] - Which clicked elements to react to
- * @property {string}  [defaultTarget] - If no data-target specified, which container to load the content into
- * @property {boolean} [allowPersistentTargets] - If a page has been reloaded, allow pagelets to load into containers of the same name
- * @property {boolean} [handleForms] - Forms with a data-uri will be submitted via pagelets
- * @property {Node}    [listenElement] - Listen to links within this container only
- * @property {int}     [minRefreshRate] - Minimum time to wait between pagelet refreshes
+ * @property {string}         [selector] - Which clicked elements to react to
+ * @property {string}         [defaultTarget] - If no data-target specified, which container to load the content into
+ * @property {boolean}        [allowPersistentTargets] - If a page has been reloaded, allow pagelets to load into containers of the same name
+ * @property {boolean}        [handleForms] - Forms with a data-uri will be submitted via pagelets
+ * @property {Node}           [listenElement] - Listen to links within this container only
+ * @property {int}            [minRefreshRate] - Minimum time to wait between pagelet refreshes
+ * @property {ActionIterator} [iterator] - set the default iterator
  */
 
 /**
  * Pagelet Request
  * @typedef {Object} Pagelets~Request
  * @property {string}  url       - URL of the resource to request
+ * @property {ActionIterator}  [iterator] - action iterator to use when processing the response
  * @property {boolean}  [triggerOnRequest] - trigger events on the request instead of document
  * @property {Element} [sourceElement] - element requesting the pagelet
  * @property {Element|string} [targetElement] - element to receive the pagelet
@@ -49,17 +56,12 @@ import {loadCss, loadScripts} from './resources';
  * @property {number}  status - HTTP status code
  * @property {string}  statusText - HTTP status message
  * @property {object}  headers - HTTP response headers
- * @property {object}  [content] - content to return and render into the target
- * @property {string}  [contentType] - content type
- * @property {object}  [meta] - meta data provided by the backend, which can be read in events
- * @property {object}  [reloadPagelet] - Reload pagelet containers by selectors
- * @property {PageletResponse~Location} [location] - Set the window url
- * @property {PageletResponse~Resources} [resources] - Resources that should be loaded into the document
+ * @property {Array}   [actions] - actions
  */
 
 /**
  * @typedef {Object} Pagelets~State
- * @property {string} targetPageletId
+ * @property {string} stateId
  * @property {?string} targetId
  * @property {string} pushUrl
  * @property {string} ajaxUrl
@@ -97,10 +99,11 @@ const _defaultOptions = {
   handleForms: true,
   listenElement: document,
   minRefreshRate: 500,
+  iterator: _makeDefaultIterator(),
 };
 
 /**
- * @augments {Pagelets~Request}
+ * @extends {Pagelets~Request}
  */
 class PageletRequest extends EventTarget
 {
@@ -110,7 +113,18 @@ class PageletRequest extends EventTarget
   constructor(properties)
   {
     super();
+    properties.iterator = properties.iterator || _options.iterator;
     Object.assign(this, properties);
+  }
+
+  addProcessor(processor)
+  {
+    if(Object.is(this.iterator, _options.iterator))
+    {
+      this.iterator = _options.iterator.clone();
+    }
+    this.iterator.addProcessor(processor);
+    return this;
   }
 
   /**
@@ -181,7 +195,7 @@ class PageletRequest extends EventTarget
 export {PageletRequest as Request};
 
 /**
- * @augments {Pagelets~Response}
+ * @extends {Pagelets~Response}
  */
 class PageletResponse
 {
@@ -213,7 +227,7 @@ function _doInit()
 {
   if(document.readyState === 'complete')
   {
-    _pushState(
+    pushState(
       _resolveTarget(_options.defaultTarget),
       window.location.toString(),
       window.location.toString(),
@@ -258,13 +272,6 @@ function _doInit()
     return true;
   }
   return false;
-}
-
-/** @deprecated */
-export function formSubmit(formElement)
-{
-  console.warn("formSubmit has been deprecated");
-  load(PageletRequest.fromElement(formElement)).catch((error) => console.log(error));
 }
 
 const _currentRequests = new Map();
@@ -354,43 +361,16 @@ export function load(request)
               if(request.triggerEvent(events.RETRIEVED, pageletObjects, true))
               {
                 _handleResponse(request, response)
-                  .then(
-                    () =>
-                    {
-                      if(response.location)
-                      {
-                        if(response.location.reloadWindow)
+                  .then(() =>
                         {
-                          if(response.location.replaceHistory)
+                          let requestPushUrl = request.getPushUrl;
+                          if(requestPushUrl)
                           {
-                            _location.replace(response.location.url);
+                            pushState(targetElement, requestPushUrl, request.url, false);
                           }
-                          else
-                          {
-                            _location.assign(response.location.url);
-                          }
-                        }
-                        else
-                        {
-                          _pushState(
-                            targetElement,
-                            response.location.url,
-                            request.url,
-                            response.location.replaceHistory,
-                          );
-                        }
-                      }
-                      else
-                      {
-                        let requestPushUrl = request.getPushUrl;
-                        if(requestPushUrl)
-                        {
-                          _pushState(targetElement, requestPushUrl, request.url, false);
-                        }
-                      }
 
-                      request.triggerEvent(events.COMPLETE, pageletObjects);
-                    });
+                          request.triggerEvent(events.COMPLETE, pageletObjects);
+                        });
               }
               resolve(pageletObjects);
             })
@@ -435,9 +415,9 @@ const _refreshHandlers = new Map();
 
 function _queueRefresh(element)
 {
+  _clearRefresh(element);
   if(element.hasAttribute('data-refresh'))
   {
-    _clearRefresh(element);
     const refreshTime = Math.max(_options.minRefreshRate, element.getAttribute('data-refresh'));
     _refreshHandlers.set(element, setTimeout(() => refresh(element), refreshTime));
   }
@@ -481,35 +461,6 @@ function _setPageletState(element, state)
   }
 }
 
-const _pageletIds = {};
-
-/**
- * @param targetEle
- * @param pushUrl
- * @param ajaxUrl
- * @param replaceHistory
- * @private
- */
-function _pushState(targetEle, pushUrl, ajaxUrl, replaceHistory)
-{
-  if(pushUrl && pushUrl === '#')
-  {
-    return;
-  }
-  // assign target an id, store globally so that when we popstate we can find where it should go.  If it does not exist, then we must reload the page.
-  targetEle.pageletId = targetEle.pageletId || _randomString(36);
-  _pageletIds[targetEle.pageletId] = targetEle;
-  const state = {targetPageletId: targetEle.pageletId, targetId: targetEle.getAttribute('id'), pushUrl, ajaxUrl};
-  if(replaceHistory)
-  {
-    History.replaceState(state, null, pushUrl);
-  }
-  else
-  {
-    History.pushState(state, null, pushUrl);
-  }
-}
-
 window.addEventListener('popstate', (d) =>
 {
   /**
@@ -518,14 +469,10 @@ window.addEventListener('popstate', (d) =>
   const state = d.state;
   if(state)
   {
-    let targetElement;
+    let targetElement = getStateElement(state.stateId);
 
-    // find targetId
-    if(_pageletIds[state.targetPageletId] && _options.listenElement.contains(_pageletIds[state.targetPageletId]))
-    {
-      targetElement = _pageletIds[state.targetPageletId];
-    }
-    else if((!!_options.allowPersistentTargets) && state.targetId)
+    if(((!targetElement) || (!_options.listenElement.contains(targetElement)))
+      && (!!_options.allowPersistentTargets) && state.targetId)
     {
       targetElement = _options.listenElement.querySelector('#' + state.targetId);
     }
@@ -540,16 +487,6 @@ window.addEventListener('popstate', (d) =>
     }
   }
 });
-
-function _randomString(length)
-{
-  let string = '';
-  while(string.length < length)
-  {
-    string += parseInt(Math.random().toFixed(16).slice(2, 19)).toString(36);
-  }
-  return string.slice(0, length);
-}
 
 function _resolveTarget(targetId)
 {
@@ -580,7 +517,7 @@ function _createResponseFromXhr(xhr)
     case '':
     case 'text/plain':
     case 'text/html':
-      return new PageletResponse(Object.assign({content: responseString}, xhrProps));
+      return new PageletResponse(Object.assign({actions: [{action: 'content', content: responseString}]}, xhrProps));
     case 'application/json':
     case 'application/javascript':
       return new PageletResponse(Object.assign(JSON.parse(responseString), xhrProps));
@@ -611,66 +548,9 @@ function _headersToObject(headers)
 function _handleResponse(request, response)
 {
   const targetElement = request.getResolvedTarget;
-  if(response.hasOwnProperty('content'))
-  {
-    if(typeof (response.content) === 'object')
-    {
-      if(response.content[''])
-      {
-        targetElement.innerHTML = response.content[''];
-        if(request.getRequestMethod() === Request.GET)
-        {
-          targetElement.setAttribute('data-self-uri', request.url);
-        }
-      }
-      Object.keys(response.content).forEach(
-        (key) =>
-        {
-          if(key)
-          {
-            let targetEle = _options.listenElement.querySelector('#' + key);
-            if(targetEle)
-            {
-              targetEle.innerHTML = response.content[key];
-            }
-          }
-        });
-    }
-    else
-    {
-      targetElement.innerHTML = response.content;
-      if(request.getRequestMethod() === Request.GET)
-      {
-        targetElement.setAttribute('data-self-uri', request.url);
-      }
-    }
-  }
-
-  if(response.hasOwnProperty('reloadPagelet'))
-  {
-    Object.keys(response.reloadPagelet)
-          .forEach(
-            (key) =>
-            {
-              const reloadTarget = response.reloadPagelet[key];
-              const pagelet = _options.listenElement.querySelector('#' + key);
-              if(pagelet)
-              {
-                load(new PageletRequest(
-                  {
-                    url: reloadTarget ? reloadTarget : pagelet.getAttribute('data-self-uri'),
-                    targetElement: key,
-                  }));
-              }
-            });
-  }
-
-  return Promise
-    .all(
-      [
-        loadCss(response.resources && response.resources.css || []),
-        loadScripts(response.resources && response.resources.js || []),
-      ])
+  return request
+    .iterator
+    .iterate(response.actions, request, response, _options)
     .then(
       () =>
       {
@@ -687,4 +567,23 @@ function _handleResponse(request, response)
         request.triggerEvent(events.ERROR);
       },
     );
+}
+
+/**
+ * Add a processor to the default iterator
+ * @param {ActionProcessor} processor
+ */
+export function addProcessor(processor)
+{
+  _options.iterator.addProcessor(processor);
+}
+
+function _makeDefaultIterator()
+{
+  const iterator = new ActionIterator();
+  iterator.addProcessor(new ContentActionProcessor());
+  iterator.addProcessor(new LocationActionProcessor());
+  iterator.addProcessor(new ResourceActionProcessor());
+  iterator.addProcessor(new RefreshActionProcessor());
+  return iterator;
 }
