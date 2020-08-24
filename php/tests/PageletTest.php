@@ -2,6 +2,11 @@
 
 namespace PackagedUI\PageletsTest;
 
+use PackagedUI\Pagelets\Actions\PageletContent;
+use PackagedUI\Pagelets\Actions\PageletCustomAction;
+use PackagedUI\Pagelets\Actions\PageletLocation;
+use PackagedUI\Pagelets\Actions\PageletRefresh;
+use PackagedUI\Pagelets\Actions\PageletResource;
 use PackagedUI\Pagelets\PageletResponse;
 use PHPUnit\Framework\TestCase;
 
@@ -16,59 +21,85 @@ class PageletTest extends TestCase
       json_encode($response)
     );
 
-    $response->addCssResource('/my.css');
+    $response->addAction(PageletResource::css('/my.css'));
     $this->assertEquals(
     /** @lang JSON */
-      '{"resources":{"css":["\/my.css"]}}',
+      '{"actions":[{"type":"css","data":"\/my.css","inline":false,"action":"resource"}]}',
       json_encode($response)
     );
 
-    $response->addJsResource('/my.js');
+    $response->addAction(PageletResource::js('/my.js'));
     $this->assertEquals(
     /** @lang JSON */
-      '{"resources":{"css":["\/my.css"],"js":["\/my.js"]}}',
+      '{"actions":[{"type":"css","data":"\/my.css","inline":false,"action":"resource"},{"type":"js","data":"\/my.js","inline":false,"action":"resource"}]}',
       json_encode($response)
     );
 
-    $response->setContent('<div>my content</div>');
+    $response->addAction(PageletContent::i('<div>my content</div>'));
     $this->assertEquals(
     /** @lang JSON */
-      '{"resources":{"css":["\/my.css"],"js":["\/my.js"]},"content":{"":"<div>my content<\/div>"}}',
+      '{"actions":[{"type":"css","data":"\/my.css","inline":false,"action":"resource"},{"type":"js","data":"\/my.js","inline":false,"action":"resource"},{"content":"<div>my content<\/div>","target":"","action":"content"}]}',
       json_encode($response)
     );
 
-    $response->addPageletReload('#my-page', '/new-url');
+    $response->addAction(PageletRefresh::i('#my-page', '/new-url'));
     $this->assertEquals(
     /** @lang JSON */
-      '{"resources":{"css":["\/my.css"],"js":["\/my.js"]},"content":{"":"<div>my content<\/div>"},"reloadPagelet":{"#my-page":"\/new-url"}}',
+      '{"actions":[{"type":"css","data":"\/my.css","inline":false,"action":"resource"},{"type":"js","data":"\/my.js","inline":false,"action":"resource"},{"content":"<div>my content<\/div>","target":"","action":"content"},{"target":"#my-page","url":"\/new-url","action":"refresh"}]}',
       json_encode($response)
     );
 
-    $response->addPageletReload('#my-page2', '/new-url2');
+    $response->addAction(PageletRefresh::i('#my-page2', '/new-url2'));
     $this->assertEquals(
     /** @lang JSON */
-      '{"resources":{"css":["\/my.css"],"js":["\/my.js"]},"content":{"":"<div>my content<\/div>"},"reloadPagelet":{"#my-page":"\/new-url","#my-page2":"\/new-url2"}}',
+      '{"actions":[{"type":"css","data":"\/my.css","inline":false,"action":"resource"},{"type":"js","data":"\/my.js","inline":false,"action":"resource"},{"content":"<div>my content<\/div>","target":"","action":"content"},{"target":"#my-page","url":"\/new-url","action":"refresh"},{"target":"#my-page2","url":"\/new-url2","action":"refresh"}]}',
       json_encode($response)
     );
 
-    $response->setLocation('/new-location', true);
+    $response->addAction(PageletLocation::i('/new-location')->replace());
     $this->assertEquals(
     /** @lang JSON */
-      '{"resources":{"css":["\/my.css"],"js":["\/my.js"]},"content":{"":"<div>my content<\/div>"},"reloadPagelet":{"#my-page":"\/new-url","#my-page2":"\/new-url2"},"location":{"url":"\/new-location","replaceHistory":true,"reloadWindow":false}}',
+      '{"actions":[' .
+      '{"type":"css","data":"\/my.css","inline":false,"action":"resource"},' .
+      '{"type":"js","data":"\/my.js","inline":false,"action":"resource"},' .
+      '{"content":"<div>my content<\/div>","target":"","action":"content"},' .
+      '{"target":"#my-page","url":"\/new-url","action":"refresh"},' .
+      '{"target":"#my-page2","url":"\/new-url2","action":"refresh"},' .
+      '{"url":"\/new-location","replace":true,"reload":false,"action":"location"}' .
+      ']}',
       json_encode($response)
     );
 
-    $response->redirect('/reload-page');
+    $response->addAction(PageletLocation::i('/reload-page')->reload());
     $this->assertEquals(
     /** @lang JSON */
-      '{"resources":{"css":["\/my.css"],"js":["\/my.js"]},"content":{"":"<div>my content<\/div>"},"reloadPagelet":{"#my-page":"\/new-url","#my-page2":"\/new-url2"},"location":{"url":"\/reload-page","replaceHistory":false,"reloadWindow":true}}',
+      '{"actions":[' .
+      '{"type":"css","data":"\/my.css","inline":false,"action":"resource"},' .
+      '{"type":"js","data":"\/my.js","inline":false,"action":"resource"},' .
+      '{"content":"<div>my content<\/div>","target":"","action":"content"},' .
+      '{"target":"#my-page","url":"\/new-url","action":"refresh"},' .
+      '{"target":"#my-page2","url":"\/new-url2","action":"refresh"},' .
+      '{"url":"\/new-location","replace":true,"reload":false,"action":"location"},' .
+      '{"url":"\/reload-page","replace":false,"reload":true,"action":"location"}' .
+      ']}',
       json_encode($response)
     );
 
-    $response->setMeta('alert', ['type' => 'warning', 'message' => 'this is a warning']);
+    $response->addAction(
+      PageletCustomAction::i('alert')->addData('type', 'warning')->addData('message', 'this is a warning')
+    );
     $this->assertEquals(
     /** @lang JSON */
-      '{"resources":{"css":["\/my.css"],"js":["\/my.js"]},"content":{"":"<div>my content<\/div>"},"reloadPagelet":{"#my-page":"\/new-url","#my-page2":"\/new-url2"},"location":{"url":"\/reload-page","replaceHistory":false,"reloadWindow":true},"meta":{"alert":{"type":"warning","message":"this is a warning"}}}',
+      '{"actions":[' .
+      '{"type":"css","data":"\/my.css","inline":false,"action":"resource"},' .
+      '{"type":"js","data":"\/my.js","inline":false,"action":"resource"},' .
+      '{"content":"<div>my content<\/div>","target":"","action":"content"},' .
+      '{"target":"#my-page","url":"\/new-url","action":"refresh"},' .
+      '{"target":"#my-page2","url":"\/new-url2","action":"refresh"},' .
+      '{"url":"\/new-location","replace":true,"reload":false,"action":"location"},' .
+      '{"url":"\/reload-page","replace":false,"reload":true,"action":"location"},' .
+      '{"type":"warning","message":"this is a warning","action":"alert"}' .
+      ']}',
       json_encode($response)
     );
   }

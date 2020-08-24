@@ -1,1 +1,16 @@
-)]}'{"items":["one","two","three"],"reloadPagelet":{"nav":null}}
+{
+  "actions": [
+    {
+      "action": "my-items",
+      "items": [
+        "one",
+        "two",
+        "three"
+      ]
+    },
+    {
+      "action": "refresh",
+      "target": "nav"
+    }
+  ]
+}

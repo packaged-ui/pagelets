@@ -1,1 +1,38 @@
-)]}'{"content":"<h1>Page 3</h1>\n<p>this is page 3 text</p>","resources":{"js":["page3.js"],"css":["page3.css"]}}
+{
+  "actions": [
+    {
+      "content": "<h1>Page 3</h1>\n<p>this is page 3 text</p>",
+      "action": "content"
+    },
+    {
+      "action": "resource",
+      "type": "js",
+      "data": "page3.js"
+    },
+    {
+      "action": "resource",
+      "type": "js",
+      "inline": true,
+      "data": "alert('inline js');"
+    },
+    {
+      "action": "resource",
+      "type": "css",
+      "data": "page3.css"
+    },
+    {
+      "action": "resource",
+      "type": "css",
+      "inline": true,
+      "data": "body{color:blue}"
+    },
+    {
+      "action": "my-items",
+      "items": [
+        "1",
+        "2",
+        "3"
+      ]
+    }
+  ]
+}
