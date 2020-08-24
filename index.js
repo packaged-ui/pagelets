@@ -1,3 +1,3 @@
-import * as _ from "./js/src/pagelets";
+import * as _ from './js/src/index';
 
 export {_ as Pagelets};

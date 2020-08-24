@@ -3,10 +3,6 @@ import History from 'html5-history-api';
 import EventTarget from '@ungap/event-target';
 import {ActionIterator} from './actions/actionIterator';
 import {getStateElement, pushState} from './pushState';
-import {ContentActionProcessor} from './actions/builtin/content-processor';
-import {LocationActionProcessor} from './actions/builtin/location-processor';
-import {ResourceActionProcessor} from './actions/builtin/resource-processor';
-import {RefreshActionProcessor} from './actions/builtin/refresh-processor';
 
 /**
  * Initialisation options
@@ -99,7 +95,7 @@ const _defaultOptions = {
   handleForms: true,
   listenElement: document,
   minRefreshRate: 500,
-  iterator: _makeDefaultIterator(),
+  iterator: new ActionIterator(),
 };
 
 /**
@@ -576,14 +572,4 @@ function _handleResponse(request, response)
 export function addProcessor(processor)
 {
   _options.iterator.addProcessor(processor);
-}
-
-function _makeDefaultIterator()
-{
-  const iterator = new ActionIterator();
-  iterator.addProcessor(new ContentActionProcessor());
-  iterator.addProcessor(new LocationActionProcessor());
-  iterator.addProcessor(new ResourceActionProcessor());
-  iterator.addProcessor(new RefreshActionProcessor());
-  return iterator;
 }
