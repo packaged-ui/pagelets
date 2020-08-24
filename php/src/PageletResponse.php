@@ -17,6 +17,7 @@ class PageletResponse implements JsonSerializable
   public function addAction(PageletActionInterface $action)
   {
     $this->_data['actions'][] = $action;
+    return $this;
   }
 
   public function jsonSerialize()
