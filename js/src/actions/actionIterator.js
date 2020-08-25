@@ -7,22 +7,16 @@ export class ActionIterator
 
   iterate(actions, request, response, options)
   {
-    return Promise
-      .all(
-        (actions || []).map(
-          (action) =>
-          {
-            /**
-             *
-             * @type {ActionProcessor}
-             */
-            const processor = this._processors.get(action.action);
-            if(processor)
-            {
-              return processor.process(action, request, response, options);
-            }
-            return new Promise(resolve => resolve());
-          }));
+    actions = (actions || []);
+    return actions.reduce(
+      async (p, action) =>
+      {
+        if(options.synchronous)
+        {
+          await p;
+        }
+        return this._getPromiseForAction(action, request, response, options);
+      }, Promise.resolve());
   }
 
   /**
@@ -42,5 +36,19 @@ export class ActionIterator
         c.addProcessor(Object.assign(Object.create(Object.getPrototypeOf(value)), value));
       });
     return c;
+  }
+
+  _getPromiseForAction(action, request, response, options)
+  {
+    /**
+     *
+     * @type {ActionProcessor}
+     */
+    const processor = this._processors.get(action.action);
+    if(processor)
+    {
+      return processor.process(action, request, response, options);
+    }
+    return new Promise(resolve => resolve());
   }
 }

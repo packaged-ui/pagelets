@@ -15,6 +15,12 @@ for(let eventName in Pagelets.events)
 
 class MyItemsProcessor extends ActionProcessor
 {
+  constructor(wait)
+  {
+    super();
+    this._wait = wait;
+  }
+
   get action()
   {
     return 'my-items';
@@ -22,16 +28,30 @@ class MyItemsProcessor extends ActionProcessor
 
   process(action, request, response, options)
   {
-    const target = request.getResolvedTarget;
-    let content = '';
-    action.items.forEach(
-      (itm) =>
+    return new Promise(
+      resolve =>
       {
-        content += `<div>${itm}</div>`;
+        const target = request.getResolvedTarget;
+        let content = '';
+        action.items.forEach(
+          (itm) =>
+          {
+            content += `<div>${itm}</div>`;
+          });
+        target.innerHTML = content;
+        if(this._wait)
+        {
+          setTimeout(resolve, this._wait);
+        }
+        else
+        {
+          resolve();
+        }
       });
-    target.innerHTML = content;
   }
 }
+
+Pagelets.addProcessor(new MyItemsProcessor(5000));
 
 document.addEventListener('click', function (e)
 {

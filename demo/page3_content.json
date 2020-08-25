@@ -10,28 +10,34 @@
       "data": "page3.js"
     },
     {
-      "action": "resource",
-      "type": "js",
-      "inline": true,
-      "data": "console.log('inline js');"
-    },
-    {
-      "action": "resource",
-      "type": "css",
-      "data": "page3.css"
-    },
-    {
-      "action": "resource",
-      "type": "css",
-      "inline": true,
-      "data": "body{color:blue}"
-    },
-    {
-      "action": "my-items",
-      "items": [
-        "1",
-        "2",
-        "3"
+      "action": "synchronous",
+      "actions": [
+        {
+          "action": "resource",
+          "type": "js",
+          "inline": true,
+          "data": "console.log('inline js');"
+        },
+        {
+          "action": "my-items",
+          "items": [
+            "1",
+            "2",
+            "3"
+          ],
+          "wait": 5000
+        },
+        {
+          "action": "resource",
+          "type": "css",
+          "data": "page3.css"
+        },
+        {
+          "action": "resource",
+          "type": "css",
+          "inline": true,
+          "data": "body{color:blue}"
+        }
       ]
     }
   ]
