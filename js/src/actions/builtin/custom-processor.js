@@ -2,11 +2,11 @@ import {ActionProcessor} from '../processor';
 
 export class CustomActionProcessor extends ActionProcessor
 {
-  constructor(fn)
+  constructor(action, fn)
   {
     super();
     this._fn = fn;
-    this._action = null;
+    this._action = action;
   }
 
   get action()
@@ -14,18 +14,12 @@ export class CustomActionProcessor extends ActionProcessor
     return this._action;
   }
 
-  setAction(action)
-  {
-    this._action = action;
-    return this;
-  }
-
   process(action, request, response, options)
   {
     return new Promise(
       resolve =>
       {
-        this.fn(action);
+        this._fn(action);
         resolve();
       });
   }

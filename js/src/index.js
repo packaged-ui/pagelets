@@ -10,3 +10,4 @@ addProcessor(new ResourceActionProcessor());
 addProcessor(new RefreshActionProcessor());
 
 export * from './pagelets';
+export CustomActionProcessor from './actions/builtin/custom-processor';
