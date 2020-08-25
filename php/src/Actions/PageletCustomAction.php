@@ -39,6 +39,11 @@ class PageletCustomAction extends AbstractPageletAction
     return $this;
   }
 
+  public function getData()
+  {
+    return $this->_data;
+  }
+
   protected function _jsonSerialize(): array
   {
     return $this->_data;

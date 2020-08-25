@@ -20,6 +20,11 @@ class PageletResponse implements JsonSerializable
     return $this;
   }
 
+  public function getActions()
+  {
+    return $this->_data['actions'];
+  }
+
   public function jsonSerialize()
   {
     return (object)$this->_data;

@@ -17,6 +17,12 @@ class PageletLocation extends AbstractPageletAction
     return $o;
   }
 
+  public function url(string $url)
+  {
+    $this->_url = $url;
+    return $this;
+  }
+
   public function reload(bool $bool = true)
   {
     $this->_reloadWindow = $bool;

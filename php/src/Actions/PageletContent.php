@@ -22,6 +22,16 @@ class PageletContent extends AbstractPageletAction
     return 'content';
   }
 
+  public function getTarget()
+  {
+    return $this->_target;
+  }
+
+  public function getContent()
+  {
+    return $this->_content;
+  }
+
   protected function _jsonSerialize(): array
   {
     return ['content' => (string)$this->_content, 'target' => $this->_target];
