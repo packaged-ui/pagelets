@@ -13,7 +13,7 @@
       "action": "resource",
       "type": "js",
       "inline": true,
-      "data": "alert('inline js');"
+      "data": "console.log('inline js');"
     },
     {
       "action": "resource",

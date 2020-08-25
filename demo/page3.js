@@ -1,1 +1,1 @@
-alert('page3');
+console.log('page3.js');
