@@ -33,6 +33,6 @@ class SynchronousActions extends AbstractPageletAction
 
   protected function _jsonSerialize(): array
   {
-    return ['content' => (string)$this->_actions];
+    return ['actions' => $this->_actions];
   }
 }
