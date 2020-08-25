@@ -25,6 +25,12 @@ class SynchronousActions extends AbstractPageletAction
     return $this->_actions;
   }
 
+  public function addAction(PageletActionInterface $action)
+  {
+    $this->_actions[] = $action;
+    return $this;
+  }
+
   protected function _jsonSerialize(): array
   {
     return ['content' => (string)$this->_actions];
