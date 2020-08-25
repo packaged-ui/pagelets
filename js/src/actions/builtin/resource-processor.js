@@ -39,7 +39,8 @@ export class ResourceActionProcessor extends ActionProcessor
       case 'js':
         if(action.inline)
         {
-          eval(action.data);
+          const fn = new Function(action.data);
+          fn();
           break;
         }
         return loadScripts([action.data]);
