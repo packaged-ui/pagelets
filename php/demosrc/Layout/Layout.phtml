@@ -34,42 +34,5 @@ use Packaged\Dispatch\ResourceStore;
 
 
 <?= Dispatch::instance()->store()->generateHtmlIncludes(ResourceStore::TYPE_JS); ?>
-<script>
-  for(let eventName in Pagelets.events)
-  {
-    document.addEventListener(
-      Pagelets.events[eventName], function (e)
-      {
-        console.log(e.type, e.detail);
-      },
-    );
-  }
-  Pagelets.init();
-
-  document.addEventListener('click', function (e)
-  {
-    if(e.target.matches('#custom-request'))
-    {
-      const request = new Pagelets.Request(
-        {
-          url: '/custom',
-          targetElement: 'container',
-          triggerOnRequest: true,
-        });
-
-      request.addEventListener(Pagelets.events.RETRIEVED, function (e)
-      {
-        e.detail.response.content[''] = '';
-        for(let a in e.detail.response.meta.items)
-        {
-          e.detail.response.content[''] += `<div>${e.detail.response.meta.items[a]}</div>`;
-        }
-      });
-
-      Pagelets.load(request);
-    }
-  });
-
-</script>
 </body>
 </html>

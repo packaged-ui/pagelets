@@ -26,8 +26,8 @@ class DemoApplication extends Application
   {
     parent::_initialize();
     Dispatch::bind(new Dispatch(dirname($this->getContext()->getProjectRoot()), self::DISPATCH_PATH))
-      ->addAlias('dist', '/dist');
-    ResourceManager::alias('dist')->requireJs('pagelets.min.js');
+      ->addAlias('demo', '/demo');
+    ResourceManager::alias('demo')->requireJs('demo.min.js');
   }
 
   protected function _defaultHandler(): Handler

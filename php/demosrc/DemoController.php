@@ -8,6 +8,8 @@ use Packaged\Glimpse\Tags\Text\BoldText;
 use Packaged\Http\Response;
 use Packaged\Http\Responses\JsonResponse;
 use Packaged\SafeHtml\SafeHtml;
+use PackagedUI\Pagelets\Actions\PageletContent;
+use PackagedUI\Pagelets\Actions\PageletCustomAction;
 use PackagedUI\Pagelets\PageletResponse;
 use PackagedUI\PageletsDemo\Layout\Layout;
 
@@ -19,7 +21,7 @@ class DemoController extends Controller
     yield self::_route('text', 'text');
     yield self::_route('html', 'html');
     yield self::_route('pagelet', 'pagelet');
-    yield self::_route('custom', 'custom');
+    yield self::_route('custom.json', 'custom');
   }
 
   public function getIndex()
@@ -40,14 +42,16 @@ class DemoController extends Controller
   public function getPagelet()
   {
     return PageletResponse::i()
-      ->setContent(SafeHtml::escape(['this is a ', BoldText::create('pagelet'), 'response'])->getContent());
+      ->addAction(
+        PageletContent::i(SafeHtml::escape(['this is a ', BoldText::create('pagelet'), 'response'])->getContent())
+      );
   }
 
   public function getCustom()
   {
     return PageletResponse::i()
-      ->setMeta('items', ["one", "two", "three"])
-      ->setContent('other content ' . rand(), 'other');
+      ->addAction(PageletContent::i('other content ' . rand(), 'other'))
+      ->addAction(PageletCustomAction::i('my-items')->setData(['items' => ["one", "two", "three"]]));
   }
 
   protected function _prepareResponse(Context $c, $result, $buffer = null)
@@ -60,7 +64,14 @@ class DemoController extends Controller
       }
       if($result instanceof PageletResponse)
       {
-        $result = $result->getContent();
+        foreach($result->getActions() as $action)
+        {
+          if($action instanceof PageletContent && empty($action->getTarget()))
+          {
+            $result = $action->getContent();
+            break;
+          }
+        }
       }
 
       $theme = $this->_createTheme();
