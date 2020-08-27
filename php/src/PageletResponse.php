@@ -24,6 +24,9 @@ class PageletResponse implements JsonSerializable
     return $this;
   }
 
+  /**
+   * @return PageletActionInterface[]
+   */
   public function getActions()
   {
     return $this->_data['actions'];
@@ -35,7 +38,7 @@ class PageletResponse implements JsonSerializable
     return $this;
   }
 
-  public function loadPagelet($target, $url = null)
+  public function loadPagelet(string $target, $url = null)
   {
     $this->addAction(PageletRefresh::i($target, $url));
     return $this;
