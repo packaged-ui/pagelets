@@ -4,6 +4,8 @@ import {pushState} from '../../pushState';
 
 const _location = History.location || window.location;
 
+const _processed = new WeakMap();
+
 export class LocationActionProcessor extends ActionProcessor
 {
   get action()
@@ -16,25 +18,29 @@ export class LocationActionProcessor extends ActionProcessor
     return new Promise(
       resolve =>
       {
-        if(action.reload)
+        if(!_processed.has(request))
         {
-          if(action.replace)
+          _processed.set(request, true);
+          if(action.reload)
           {
-            _location.replace(action.url);
+            if(action.replace)
+            {
+              _location.replace(action.url);
+            }
+            else
+            {
+              _location.assign(action.url);
+            }
           }
           else
           {
-            _location.assign(action.url);
+            pushState(
+              request.getResolvedTarget,
+              action.url,
+              request.url,
+              action.replace,
+            );
           }
-        }
-        else
-        {
-          pushState(
-            request.getResolvedTarget,
-            action.url,
-            request.url,
-            action.replace,
-          );
         }
         resolve();
       });
