@@ -534,7 +534,7 @@ function _headersToObject(headers)
  */
 function _handleResponse(request, response)
 {
-  const hasLocationAction = response.actions.reduce((p, action) => p || action.type === 'location', false);
+  const hasLocationAction = response.actions.reduce((p, action) => p || (action.action === 'location'), false);
   if(!hasLocationAction)
   {
     const requestPushUrl = request.getPushUrl;
