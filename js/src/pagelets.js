@@ -357,16 +357,7 @@ export function load(request)
               if(request.triggerEvent(events.RETRIEVED, pageletObjects, true))
               {
                 _handleResponse(request, response)
-                  .then(() =>
-                        {
-                          let requestPushUrl = request.getPushUrl;
-                          if(requestPushUrl)
-                          {
-                            pushState(targetElement, requestPushUrl, request.url, false);
-                          }
-
-                          request.triggerEvent(events.COMPLETE, pageletObjects);
-                        });
+                  .then(() => request.triggerEvent(events.COMPLETE, pageletObjects));
               }
               resolve(pageletObjects);
             })
@@ -543,6 +534,16 @@ function _headersToObject(headers)
  */
 function _handleResponse(request, response)
 {
+  const hasLocationAction = response.actions.reduce((p, action) => p || action.type === 'location', false);
+  if(!hasLocationAction)
+  {
+    const requestPushUrl = request.getPushUrl;
+    if(requestPushUrl)
+    {
+      response.actions.push({'action': 'location', 'url': requestPushUrl, 'replace': false});
+    }
+  }
+
   const targetElement = request.getResolvedTarget;
   return request
     .iterator
