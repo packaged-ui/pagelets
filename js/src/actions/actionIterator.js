@@ -11,6 +11,8 @@ export class ActionIterator
     return actions.reduce(
       async (p, action) =>
       {
+        response._processedActions = response._processedActions || [];
+        response._processedActions.push(action);
         if(options.synchronous)
         {
           await p;
@@ -31,7 +33,7 @@ export class ActionIterator
   {
     const c = new ActionIterator();
     this._processors.forEach(
-      (value, key) =>
+      (value) =>
       {
         c.addProcessor(Object.assign(Object.create(Object.getPrototypeOf(value)), value));
       });

@@ -10,6 +10,10 @@
       "data": "page3.js"
     },
     {
+      "action": "location",
+      "url": "fake_page_3"
+    },
+    {
       "action": "synchronous",
       "actions": [
         {

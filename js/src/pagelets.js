@@ -534,12 +534,6 @@ function _headersToObject(headers)
  */
 function _handleResponse(request, response)
 {
-  const requestPushUrl = request.getPushUrl;
-  if(requestPushUrl)
-  {
-    response.actions.push({action: 'location', url: requestPushUrl, replace: false, reload: false});
-  }
-
   const targetElement = request.getResolvedTarget;
   return request
     .iterator
@@ -551,6 +545,17 @@ function _handleResponse(request, response)
         {
           _initialiseNewPagelets(targetElement);
           _queueRefresh(targetElement);
+        }
+
+        const hasLocation = response._processedActions
+          && response._processedActions.reduce((p, t) => p || t.action === 'location', false);
+        if(!hasLocation)
+        {
+          const requestPushUrl = request.getPushUrl;
+          if(requestPushUrl)
+          {
+            pushState(request.getResolvedTarget, requestPushUrl, request.url, false);
+          }
         }
       })
     .catch(
