@@ -5,6 +5,7 @@ namespace PackagedUI\Pagelets;
 use JsonSerializable;
 use PackagedUI\Pagelets\Actions\PageletActionInterface;
 use PackagedUI\Pagelets\Actions\PageletContent;
+use PackagedUI\Pagelets\Actions\PageletLoad;
 use PackagedUI\Pagelets\Actions\PageletLocation;
 use PackagedUI\Pagelets\Actions\PageletRefresh;
 use PackagedUI\Pagelets\Actions\PageletResource;
@@ -38,9 +39,15 @@ class PageletResponse implements JsonSerializable
     return $this;
   }
 
-  public function loadPagelet(string $target, $url = null)
+  public function loadPagelet(string $url, string $target = '')
   {
-    $this->addAction(PageletRefresh::i($target, $url));
+    $this->addAction(PageletLoad::i($url, $target));
+    return $this;
+  }
+
+  public function refresh(string $target)
+  {
+    $this->addAction(PageletRefresh::i($target));
     return $this;
   }
 

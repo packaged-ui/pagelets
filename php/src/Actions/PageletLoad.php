@@ -9,7 +9,7 @@ class PageletLoad extends AbstractPageletAction
 
   protected function __construct() { }
 
-  public static function i(string $url, string $target = null)
+  public static function i(string $url, string $target = '')
   {
     $o = new static();
     $o->_url = $url;
@@ -23,7 +23,7 @@ class PageletLoad extends AbstractPageletAction
     return $this;
   }
 
-  public function target(?string $target = null)
+  public function target(string $target = '')
   {
     $this->_target = $target;
     return $this;
