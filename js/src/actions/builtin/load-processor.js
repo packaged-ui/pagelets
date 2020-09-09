@@ -10,15 +10,10 @@ export class LoadActionProcessor extends ActionProcessor
 
   process(action, request, response, options)
   {
-    return new Promise(
-      resolve =>
+    return load(new Request(
       {
-        load(new Request(
-          {
-            url: action.url,
-            targetElement: action.target || request.targetElement,
-          }));
-        resolve();
-      });
+        url: action.url,
+        targetElement: action.target || request.targetElement,
+      }));
   }
 }
