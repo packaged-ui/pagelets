@@ -5,15 +5,13 @@ namespace PackagedUI\Pagelets\Actions;
 class PageletRefresh extends AbstractPageletAction
 {
   public $_target;
-  public $_url;
 
   protected function __construct() { }
 
-  public static function i(string $target = '', ?string $url = null)
+  public static function i(string $target = '')
   {
     $o = new static();
     $o->_target = $target;
-    $o->_url = $url;
     return $o;
   }
 
@@ -26,7 +24,6 @@ class PageletRefresh extends AbstractPageletAction
   {
     return [
       'target' => $this->_target,
-      'url'    => $this->_url,
     ];
   }
 }
