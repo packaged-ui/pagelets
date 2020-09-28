@@ -547,12 +547,12 @@ function _handleResponse(request, response)
           _queueRefresh(targetElement);
         }
 
-        const hasLocation = response._processedActions
-          && response._processedActions.reduce((p, t) => p || t.action === 'location', false);
-        if(!hasLocation)
+        const requestPushUrl = request.getPushUrl;
+        if(requestPushUrl && requestPushUrl !== _location.href.substr(-requestPushUrl.length))
         {
-          const requestPushUrl = request.getPushUrl;
-          if(requestPushUrl)
+          const hasLocation = response._processedActions
+            && response._processedActions.reduce((p, t) => p || t.action === 'location', false);
+          if(!hasLocation)
           {
             pushState(request.getResolvedTarget, requestPushUrl, request.url, false);
           }
