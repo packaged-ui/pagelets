@@ -28,13 +28,13 @@ export class ContentActionProcessor extends ActionProcessor
         else
         {
           targetElement = request.getResolvedTarget;
+          if(request.getRequestMethod() === Request.GET)
+          {
+            targetElement.setAttribute('data-self-uri', request.url);
+          }
         }
 
         targetElement.innerHTML = action.content;
-        if(request.getRequestMethod() === Request.GET)
-        {
-          targetElement.setAttribute('data-self-uri', request.url);
-        }
         resolve();
       });
   }

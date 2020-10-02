@@ -1,6 +1,16 @@
 import History from 'html5-history-api';
 
-const _stateMap = new Map();
+/**
+ * @typedef {Object} Pagelets~State~Path
+ * @property {string} targetId
+ * @property {string} url
+ */
+
+/**
+ * @typedef {Object} Pagelets~State
+ * @property {Pagelets~State~Path[]} paths
+ * @property {string} pushUrl
+ */
 
 export function pushState(targetEle, pushUrl, ajaxUrl, replaceHistory)
 {
@@ -8,10 +18,20 @@ export function pushState(targetEle, pushUrl, ajaxUrl, replaceHistory)
   {
     return;
   }
-  // assign target an id, store globally so that when we popstate we can find where it should go.  If it does not exist, then we must reload the page.
-  const state = {stateId: _randomString(36), targetId: targetEle.getAttribute('id'), pushUrl, ajaxUrl};
-  _stateMap.set(state.stateId, targetEle);
 
+  const paths = [];
+  let t = targetEle;
+  do
+  {
+    if(t.matches('[data-self-uri]'))
+    {
+      paths.push({targetId: t.getAttribute('id'), url: t.getAttribute('data-self-uri')});
+    }
+  }
+  while((t = t.parentElement));
+
+  // assign target an id, store globally so that when we popstate we can find where it should go.  If it does not exist, then we must reload the page.
+  const state = {paths: paths.reverse(), pushUrl};
   if(replaceHistory)
   {
     History.replaceState(state, null, pushUrl);
@@ -20,23 +40,4 @@ export function pushState(targetEle, pushUrl, ajaxUrl, replaceHistory)
   {
     History.pushState(state, null, pushUrl);
   }
-}
-
-/**
- * @param stateId
- * @returns {Element}
- */
-export function getStateElement(stateId)
-{
-  return _stateMap.get(stateId);
-}
-
-function _randomString(length)
-{
-  let string = '';
-  while(string.length < length)
-  {
-    string += parseInt(Math.random().toFixed(16).slice(2, 19)).toString(36);
-  }
-  return string.slice(0, length);
 }

@@ -2,7 +2,7 @@ import Request from '@packaged-ui/request';
 import History from 'html5-history-api';
 import EventTarget from '@ungap/event-target';
 import {ActionIterator} from './actions/actionIterator';
-import {getStateElement, pushState} from './pushState';
+import {pushState} from './pushState';
 
 /**
  * Initialisation options
@@ -54,15 +54,6 @@ import {getStateElement, pushState} from './pushState';
  * @property {object}  headers - HTTP response headers
  * @property {Array}   [actions] - actions
  */
-
-/**
- * @typedef {Object} Pagelets~State
- * @property {string} stateId
- * @property {?string} targetId
- * @property {string} pushUrl
- * @property {string} ajaxUrl
- */
-
 
 const _location = History.location || window.location;
 
@@ -164,7 +155,7 @@ class PageletRequest extends EventTarget
     let url = String(element.getAttribute('data-uri'));
     const request = new PageletRequest(
       {
-        url:           url,
+        url: url,
         sourceElement: element,
         targetElement: element.getAttribute('data-target'),
       });
@@ -184,7 +175,7 @@ class PageletRequest extends EventTarget
         request.pushUrl = request.url;
       }
     }
-    return request
+    return request;
   }
 }
 
@@ -456,17 +447,27 @@ window.addEventListener('popstate', (d) =>
   const state = d.state;
   if(state)
   {
-    let targetElement = getStateElement(state.stateId);
-
-    if(((!targetElement) || (!_options.listenElement.contains(targetElement)))
-      && (!!_options.allowPersistentTargets) && state.targetId)
+    // slice to copy array
+    if(state.paths.length > 0)
     {
-      targetElement = _options.listenElement.querySelector('#' + state.targetId);
-    }
-
-    if(targetElement)
-    {
-      load(new PageletRequest({url: state.ajaxUrl, targetElement: targetElement}));
+      state.paths.slice(0).reduce(
+        async (p, {targetId, url}, i, arr) =>
+        {
+          await p;
+          const targetElement = _options.listenElement.getElementById(targetId);
+          if(!targetElement)
+          {
+            // reload
+            _location.replace(state.pushUrl);
+            arr.splice(0);
+            return Promise.resolve();
+          }
+          if(targetElement.getAttribute('data-self-uri') !== url)
+          {
+            return load(new PageletRequest({url, targetElement}));
+          }
+          return Promise.resolve();
+        }, Promise.resolve());
     }
     else
     {
