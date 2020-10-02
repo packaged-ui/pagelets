@@ -477,7 +477,7 @@ window.addEventListener('popstate', (d) =>
 
 function _resolveTarget(targetId)
 {
-  return (targetId && _options.listenElement.querySelector('#' + targetId)) || document.body;
+  return (targetId && _options.listenElement.getElementById(targetId)) || document.body;
 }
 
 /**

@@ -23,7 +23,7 @@ export class ContentActionProcessor extends ActionProcessor
         let targetElement;
         if(action.target)
         {
-          targetElement = options.listenElement.querySelector('#' + action.target);
+          targetElement = options.listenElement.getElementById(action.target);
         }
         else
         {
