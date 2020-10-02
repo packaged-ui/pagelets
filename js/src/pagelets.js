@@ -462,7 +462,7 @@ window.addEventListener('popstate', (d) =>
             arr.splice(0);
             return Promise.resolve();
           }
-          if(targetElement.getAttribute('data-self-uri') !== url)
+          if(i === (arr.length-1) || targetElement.getAttribute('data-self-uri') !== url)
           {
             return load(new PageletRequest({url, targetElement}));
           }
