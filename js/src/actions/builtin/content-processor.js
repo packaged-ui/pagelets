@@ -28,13 +28,20 @@ export class ContentActionProcessor extends ActionProcessor
         else
         {
           targetElement = request.getResolvedTarget;
-          if(request.getRequestMethod() === Request.GET)
+          if(targetElement && request.getRequestMethod() === Request.GET)
           {
             targetElement.setAttribute('data-self-uri', request.url);
           }
         }
 
-        targetElement.innerHTML = action.content;
+        if(targetElement)
+        {
+          targetElement.innerHTML = action.content;
+        }
+        else
+        {
+          console.warn('content target does not exist', request, action);
+        }
         resolve();
       });
   }
