@@ -505,7 +505,12 @@ function _createResponseFromXhr(xhr)
     case '':
     case 'text/plain':
     case 'text/html':
-      return new PageletResponse(Object.assign({actions: [{action: 'content', content: responseString}]}, xhrProps));
+      const pageletProps = {};
+      if(xhr.status === 200)
+      {
+        pageletProps.actions = [{action: 'content', content: responseString}];
+      }
+      return new PageletResponse(Object.assign(pageletProps, xhrProps));
     case 'application/json':
     case 'application/javascript':
       return new PageletResponse(Object.assign(JSON.parse(responseString), xhrProps));
