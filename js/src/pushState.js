@@ -23,7 +23,7 @@ export function pushState(targetEle, pushUrl, ajaxUrl, replaceHistory)
   let t = targetEle;
   do
   {
-    if(t.matches('[data-self-uri]'))
+    if(t && t.matches('[data-self-uri]'))
     {
       paths.push({targetId: t.getAttribute('id'), url: t.getAttribute('data-self-uri')});
     }

@@ -38,7 +38,10 @@ class MyItemsProcessor extends ActionProcessor
           {
             content += `<div>${itm}</div>`;
           });
-        target.innerHTML = content;
+        if(target)
+        {
+          target.innerHTML = content;
+        }
         if(this._wait)
         {
           setTimeout(resolve, this._wait);

@@ -115,10 +115,14 @@ class PageletRequest extends EventTarget
   }
 
   /**
-   * @returns {Element}
+   * @returns {Element|null}
    */
   get getResolvedTarget()
   {
+    if(this.targetElement === false)
+    {
+      return null;
+    }
     if(this.targetElement instanceof Element)
     {
       return this.targetElement;
@@ -415,15 +419,18 @@ function _clearRefresh(element)
  */
 export function refresh(element)
 {
-  const url = element.getAttribute('data-self-uri');
-  if(url)
+  if(element)
   {
-    load(new PageletRequest(
-      {
-        url: element.getAttribute('data-self-uri'),
-        sourceElement: element,
-        targetElement: element,
-      }));
+    const url = element.getAttribute('data-self-uri');
+    if(url)
+    {
+      load(new PageletRequest(
+        {
+          url: url,
+          sourceElement: element,
+          targetElement: element,
+        }));
+    }
   }
 }
 

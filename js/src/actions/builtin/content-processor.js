@@ -20,27 +20,30 @@ export class ContentActionProcessor extends ActionProcessor
     return new Promise(
       resolve =>
       {
-        let targetElement;
-        if(action.target)
+        if(action.target !== false)
         {
-          targetElement = options.listenElement.getElementById(action.target);
-        }
-        else
-        {
-          targetElement = request.getResolvedTarget;
-          if(targetElement && request.getRequestMethod() === Request.GET)
+          let targetElement;
+          if(action.target)
           {
-            targetElement.setAttribute('data-self-uri', request.url);
+            targetElement = options.listenElement.getElementById(action.target);
           }
-        }
+          else
+          {
+            targetElement = request.getResolvedTarget;
+            if(targetElement && request.getRequestMethod() === Request.GET)
+            {
+              targetElement.setAttribute('data-self-uri', request.url);
+            }
+          }
 
-        if(targetElement)
-        {
-          targetElement.innerHTML = action.content;
-        }
-        else
-        {
-          console.warn('content target does not exist', request, action);
+          if(targetElement)
+          {
+            targetElement.innerHTML = action.content;
+          }
+          else
+          {
+            console.warn('content target does not exist', request, action);
+          }
         }
         resolve();
       });
