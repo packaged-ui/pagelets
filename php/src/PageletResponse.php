@@ -7,6 +7,7 @@ use PackagedUI\Pagelets\Actions\PageletActionInterface;
 use PackagedUI\Pagelets\Actions\PageletContent;
 use PackagedUI\Pagelets\Actions\PageletLoad;
 use PackagedUI\Pagelets\Actions\PageletLocation;
+use PackagedUI\Pagelets\Actions\PageletLog;
 use PackagedUI\Pagelets\Actions\PageletRefresh;
 use PackagedUI\Pagelets\Actions\PageletResource;
 
@@ -72,6 +73,12 @@ class PageletResponse implements JsonSerializable
   public function addCssResource(string $data, bool $isUrl = true)
   {
     $this->addAction(PageletResource::css($data)->inline(!$isUrl));
+    return $this;
+  }
+
+  public function log(string $message, string $level = 'log')
+  {
+    $this->addAction(PageletLog::i($message, $level));
     return $this;
   }
 
