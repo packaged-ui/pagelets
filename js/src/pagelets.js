@@ -393,12 +393,16 @@ function _initialiseNewPagelets(parentElement)
     });
 }
 
-const _refreshHandlers = new Map();
+const _refreshHandlers = new WeakMap();
 
 function _queueRefresh(element)
 {
   _clearRefresh(element);
-  if(element.hasAttribute('data-refresh'))
+  if(!document.contains(element))
+  {
+    _refreshHandlers.delete(element);
+  }
+  else if(element.hasAttribute('data-refresh'))
   {
     const refreshTime = Math.max(_options.minRefreshRate, element.getAttribute('data-refresh'));
     _refreshHandlers.set(element, setTimeout(() => refresh(element), refreshTime));
@@ -469,7 +473,7 @@ window.addEventListener('popstate', (d) =>
             arr.splice(0);
             return Promise.resolve();
           }
-          if(i === (arr.length-1) || targetElement.getAttribute('data-self-uri') !== url)
+          if(i === (arr.length - 1) || targetElement.getAttribute('data-self-uri') !== url)
           {
             return load(new PageletRequest({url, targetElement}));
           }
