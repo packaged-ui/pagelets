@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           registry-url: https://registry.npmjs.org/
-      - run: npm publish
+      - run: npm publish --tag $GITHUB_REF
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
 
@@ -39,6 +39,6 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           registry-url: https://npm.pkg.github.com/
-      - run: npm publish
+      - run: npm publish --tag $GITHUB_REF
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
