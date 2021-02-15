@@ -234,11 +234,15 @@ function _doInit()
           const link = e.target.closest(_options.selector);
           if(link)
           {
+            const href = link.getAttribute('href');
+            if(/^data:/.test(href)) {
+              return;
+            }
             e.preventDefault();
             load(new PageletRequest(
               {
-                url: link.getAttribute('data-uri') || link.getAttribute('href'),
-                pushUrl: link.getAttribute('href'),
+                url: link.getAttribute('data-uri') || href,
+                pushUrl: href,
                 sourceElement: link,
                 targetElement: link.getAttribute('data-target'),
               }));
@@ -285,7 +289,7 @@ export function load(request)
 
       if(request.triggerEvent(events.PREPARE, {}, true))
       {
-        if((!request.url) || /^#/.test(request.url))
+        if((!request.url) || /^#/.test(request.url) || /^data:/.test(request.url))
         {
           _setPageletState(targetElement, _pageletStates.ERROR);
           request.triggerEvent(events.ERROR, {error: 'invalid url'});
