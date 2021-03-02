@@ -1,0 +1,19 @@
+# This workflow will tag a release on github when the package.json version changes on master
+
+name: Tag Release
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Release
+        uses: justincy/github-action-npm-release@v2.0.2

@@ -1,4 +1,4 @@
-# This workflow will update the version in package.json and then publish to both npm and github repositories
+# This workflow will publish to npm and github repositories when tagged
 
 name: npm Package
 
@@ -7,18 +7,7 @@ on:
     types: [ created ]
 
 jobs:
-  update-version:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-      - run: git config user.name github-actions
-      - run: git config user.email github-actions@github.com
-      - run: npm version ${GITHUB_REF##*/}
-      - run: git push
-
   publish-npm:
-    needs: update-version
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -28,9 +17,7 @@ jobs:
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
-
   publish-gpr:
-    needs: update-version
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
