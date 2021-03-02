@@ -21,7 +21,6 @@ import {pushState} from './pushState';
  * @typedef {Object} Pagelets~Request
  * @property {string}  url       - URL of the resource to request
  * @property {ActionIterator}  [iterator] - action iterator to use when processing the response
- * @property {boolean}  [triggerOnRequest] - trigger events on the request instead of document
  * @property {Element} [sourceElement] - element requesting the pagelet
  * @property {Element|string} [targetElement] - element to receive the pagelet
  * @property {string}  [pushUrl] - URL to set in the address bar
@@ -151,7 +150,8 @@ class PageletRequest extends EventTarget
       eventType,
       {detail: Object.assign({}, data, {request: this}), bubbles: true, cancelable: cancelable},
     );
-    return (this.triggerOnRequest ? this : _options.listenElement).dispatchEvent(event);
+    // trigger event on the request object first, then trigger it against the listen element
+    return this.dispatchEvent(event) && _options.listenElement.dispatchEvent(event);
   }
 
   static fromElement(element)
