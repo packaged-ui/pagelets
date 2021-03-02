@@ -1,6 +1,7 @@
 # This workflow will tag a release on github when the package.json version changes on master
 
 name: Tag Release
+
 on:
   push:
     branches:
@@ -16,4 +17,4 @@ jobs:
         with:
           fetch-depth: 0
       - name: Release
-        uses: justincy/github-action-npm-release@v2.0.2
+        uses: justincy/github-action-npm-release@2.0.2
