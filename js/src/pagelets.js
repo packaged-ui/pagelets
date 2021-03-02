@@ -235,7 +235,8 @@ function _doInit()
           if(link)
           {
             const href = link.getAttribute('href');
-            if(/^data:/.test(href)) {
+            if(/^data:/.test(href))
+            {
               return;
             }
             e.preventDefault();
@@ -352,13 +353,13 @@ export function load(request)
             {
               _setPageletState(targetElement, _pageletStates.LOADED);
               const response = _createResponseFromXhr(xhr);
-              const pageletObjects = {request: request, response: response};
-              if(request.triggerEvent(events.RETRIEVED, pageletObjects, true))
+              const eventData = {response: response};
+              if(request.triggerEvent(events.RETRIEVED, eventData, true))
               {
                 _handleResponse(request, response)
-                  .then(() => request.triggerEvent(events.COMPLETE, pageletObjects));
+                  .then(() => request.triggerEvent(events.COMPLETE, eventData));
               }
-              resolve(pageletObjects);
+              resolve(eventData);
             })
           .then(
             () =>
