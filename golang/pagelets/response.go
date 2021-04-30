@@ -16,7 +16,7 @@ func (r *Response) AddAction(action PageletAction) {
 
 func (r Response) String() string {
 	jsonBytes, _ := json.Marshal(r)
-	return ")]}" + string(jsonBytes)
+	return ")]}'" + string(jsonBytes)
 }
 
 type BaseAction struct {
