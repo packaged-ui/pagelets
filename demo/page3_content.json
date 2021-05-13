@@ -7,7 +7,11 @@
     {
       "action": "resource",
       "type": "js",
-      "data": "page3.js"
+      "data": "page3.js",
+      "options": {
+        "custom": "attribute",
+        "test": "ing"
+      }
     },
     {
       "action": "location",
@@ -34,7 +38,11 @@
         {
           "action": "resource",
           "type": "css",
-          "data": "page3.css"
+          "data": "page3.css",
+          "options": {
+            "custom": "attribute",
+            "test": "ing"
+          }
         },
         {
           "action": "resource",

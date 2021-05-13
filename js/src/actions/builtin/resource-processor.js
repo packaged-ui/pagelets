@@ -35,7 +35,7 @@ export class ResourceActionProcessor extends ActionProcessor
           document.head.append(styleEle);
           break;
         }
-        return loadCss([action.data]);
+        return loadCss([action.data], action.options);
       case 'js':
         if(action.inline)
         {
@@ -43,7 +43,7 @@ export class ResourceActionProcessor extends ActionProcessor
           fn();
           break;
         }
-        return loadScripts([action.data]);
+        return loadScripts([action.data], action.options);
     }
 
     return new Promise(resolve => resolve());

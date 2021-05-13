@@ -4,12 +4,13 @@ function _filterScripts(arr)
     .filter(function (url) {return !document.querySelector('script[src="' + url + '"]');});
 }
 
-function _loadScript(url)
+function _loadScript(url, attributes = {})
 {
   return new Promise(
     (resolve, reject) =>
     {
       const se = document.createElement('script');
+      Object.keys(attributes).forEach(k => se.setAttribute(k, attributes[k]));
       se.setAttribute('src', url);
       se.setAttribute('type', 'text/javascript');
       se.addEventListener('load', resolve);
@@ -24,12 +25,13 @@ function _filterCss(arr)
     .filter(function (url) {return !document.querySelector('link[rel="stylesheet"][href="' + url + '"]');});
 }
 
-function _loadCss(url)
+function _loadCss(url, attributes = {})
 {
   return new Promise(
     (resolve, reject) =>
     {
       const se = document.createElement('link');
+      Object.keys(attributes).forEach(k => se.setAttribute(k, attributes[k]));
       se.setAttribute('href', url);
       se.setAttribute('rel', 'stylesheet');
       se.addEventListener('load', resolve);
@@ -38,7 +40,7 @@ function _loadCss(url)
     });
 }
 
-function _loadMultiple(arr, filterFn, loadFn)
+function _loadMultiple(arr, filterFn, loadFn, options)
 {
   return new Promise(
     (resolve, reject) =>
@@ -59,7 +61,7 @@ function _loadMultiple(arr, filterFn, loadFn)
 
       for(let i = 0; i < arr.length; i++)
       {
-        loadFn(arr[i])
+        loadFn(arr[i], options)
           .then(
             () =>
             {
@@ -75,12 +77,12 @@ function _loadMultiple(arr, filterFn, loadFn)
     });
 }
 
-export function loadScripts(arr)
+export function loadScripts(arr, options)
 {
-  return _loadMultiple(arr, _filterScripts, _loadScript);
+  return _loadMultiple(arr, _filterScripts, _loadScript, options);
 }
 
-export function loadCss(arr)
+export function loadCss(arr, options)
 {
-  return _loadMultiple(arr, _filterCss, _loadCss);
+  return _loadMultiple(arr, _filterCss, _loadCss, options);
 }
