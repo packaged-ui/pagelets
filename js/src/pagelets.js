@@ -231,7 +231,11 @@ function _doInit()
       {
         if(e.target instanceof Element)
         {
-          const link = e.target.closest(_options.selector);
+          let link = e.target.closest(_options.selector);
+          if(link === null && e.path && e.path.length > 0)
+          {
+            link = e.path[0].closest(_options.selector);
+          }
           if(link)
           {
             const href = link.getAttribute('href');
