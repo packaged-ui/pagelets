@@ -2,7 +2,7 @@
 /yarn.lock
 /package-lock.json
 
-/vendor/
+/php/vendor/
 /composer.lock
 
 /demo/demo.min.js
