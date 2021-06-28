@@ -2,7 +2,7 @@ import History from 'html5-history-api';
 import {ActionProcessor} from '../processor';
 import {pushState} from '../../pushState';
 
-const _location = History.location || window.location;
+const _location = History && History.location || window.location;
 
 export class LocationActionProcessor extends ActionProcessor
 {
