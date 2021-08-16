@@ -1,5 +1,5 @@
-import {Pagelets} from '../index';
-import {ActionProcessor} from '../js/src/actions/processor';
+import {Pagelets} from '../js/index.js';
+import {ActionProcessor} from '../js/src/actions/processor.js';
 
 Pagelets.init();
 

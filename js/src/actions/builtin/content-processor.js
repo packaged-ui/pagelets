@@ -1,5 +1,4 @@
-import {ActionProcessor} from '../processor';
-import Request from '@packaged-ui/request';
+import {ActionProcessor} from '../processor.js';
 
 export class ContentActionProcessor extends ActionProcessor
 {
@@ -30,7 +29,7 @@ export class ContentActionProcessor extends ActionProcessor
           else
           {
             targetElement = request.getResolvedTarget;
-            if(targetElement && request.getRequestMethod() === Request.GET)
+            if(targetElement && request.getRequestMethod() === 'get')
             {
               targetElement.setAttribute('data-self-uri', request.url);
             }

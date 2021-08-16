@@ -1,16 +1,16 @@
 import Request from '@packaged-ui/request';
 import History from 'html5-history-api';
 import EventTarget from '@ungap/event-target';
-import {ActionIterator} from './actions/actionIterator';
-import {pushState} from './pushState';
+import {ActionIterator} from './actions/actionIterator.js';
+import {pushState} from './pushState.js';
 
 /**
  * Initialisation options
  * @typedef {Object} Pagelets~InitOptions
- * @property {string}         [selector] - Which clicked elements to react to
+ * @property {string}         [selector] - Which "click" event elements to react to
+ * @property {string}         [formSelector] - Which "submit" event elements to react to
  * @property {string}         [defaultTarget] - If no data-target specified, which container to load the content into
  * @property {boolean}        [allowPersistentTargets] - If a page has been reloaded, allow pagelets to load into containers of the same name
- * @property {boolean}        [handleForms] - Forms with a data-uri will be submitted via pagelets
  * @property {Node}           [listenElement] - Listen to links within this container only
  * @property {int}            [minRefreshRate] - Minimum time to wait between pagelet refreshes
  * @property {ActionIterator} [iterator] - set the default iterator
@@ -54,7 +54,7 @@ import {pushState} from './pushState';
  * @property {Array}   [actions] - actions
  */
 
-const _location = History.location || window.location;
+const _location = (History && History.location) || window.location;
 
 export const events = {
   PREPARE: 'prepare',
@@ -81,8 +81,8 @@ const _pageletStates = {
  */
 const _defaultOptions = {
   selector: 'a[data-uri],button[data-uri],[href][data-target]',
+  formSelector: 'form[data-uri],form[data-target]',
   allowPersistentTargets: true,
-  handleForms: true,
   listenElement: document,
   minRefreshRate: 500,
   iterator: new ActionIterator(),
@@ -99,6 +99,7 @@ class PageletRequest extends EventTarget
   constructor(properties)
   {
     super();
+    this.data = {};
     properties.iterator = properties.iterator || _options.iterator;
     Object.assign(this, properties);
   }
@@ -131,7 +132,21 @@ class PageletRequest extends EventTarget
 
   getRequestMethod()
   {
-    return this.method || (this.data ? Request.POST : Request.GET);
+    return (this.method || (Object.entries(this.data).length > 0 ? 'post' : 'get')).toLowerCase();
+  }
+
+  getRequestUrl()
+  {
+    let url = this.url;
+    const data = Object.entries(this.data);
+    if(this.method === 'get' && data.length > 0)
+    {
+      url = url + (url.indexOf('?') > -1 ? '&' : '?')
+        + [...data]
+          .map(e => `${encodeURIComponent(e[0])}=${encodeURIComponent(String(e[1]))}`)
+          .join('&');
+    }
+    return url;
   }
 
   get getPushUrl()
@@ -156,27 +171,24 @@ class PageletRequest extends EventTarget
 
   static fromElement(element)
   {
-    let url = String(element.getAttribute('data-uri'));
     const request = new PageletRequest(
       {
-        url: url,
+        url: element.getAttribute('data-uri'),
         sourceElement: element,
         targetElement: element.getAttribute('data-target'),
       });
 
     if(element instanceof HTMLFormElement)
     {
-      const formData = new FormData(element);
-      request.data = formData;
-      request.method = String(element.method);
+      request.url = request.url || element.getAttribute('action');
 
-      if(element.method.toLowerCase() === Request.GET)
+      request.data = {};
+      (new FormData(element)).forEach((v, k) => request.data[k] = v);
+      request.method = element.getAttribute('method').toLowerCase();
+
+      if((!request.pushUrl) && element.method === 'get')
       {
-        request.url = url + (url.indexOf('?') > -1 ? '&' : '?')
-          + [...formData.entries()]
-            .map(e => `${encodeURIComponent(e[0])}=${encodeURIComponent(String(e[1]))}`)
-            .join('&');
-        request.pushUrl = request.url;
+        request.pushUrl = element.getAttribute('action') || request.url;
       }
     }
     return request;
@@ -260,7 +272,7 @@ function _doInit()
       'submit',
       (e) =>
       {
-        if(_options.handleForms && e.target instanceof HTMLFormElement && e.target.hasAttribute('data-uri'))
+        if(_options.formSelector && e.target instanceof HTMLFormElement && e.target.matches(_options.formSelector))
         {
           load(PageletRequest.fromElement(e.target)).catch((error) => console.log(error));
           e.preventDefault();
@@ -287,7 +299,7 @@ export function load(request)
     request = new PageletRequest(request);
   }
   return new Promise(
-    (resolve) =>
+    (resolve, reject) =>
     {
       const targetElement = request.getResolvedTarget;
       _setPageletState(targetElement, _pageletStates.REQUESTED);
@@ -298,7 +310,7 @@ export function load(request)
         {
           _setPageletState(targetElement, _pageletStates.ERROR);
           request.triggerEvent(events.ERROR, {error: 'invalid url'});
-          return;
+          throw 'invalid url';
         }
 
         // clear any existing timeout while we make a new request
@@ -311,7 +323,7 @@ export function load(request)
           _currentRequests.delete(targetElement);
         }
 
-        const req = (new Request(request.url));
+        const req = new Request(request.getRequestUrl());
         _currentRequests.set(targetElement, req);
 
         req
@@ -350,20 +362,31 @@ export function load(request)
             })
           .setData(request.data);
 
+        const eventData = {request};
         req
           .send()
           .then(
             (xhr) =>
             {
               _setPageletState(targetElement, _pageletStates.LOADED);
-              const response = _createResponseFromXhr(xhr);
-              const eventData = {response: response};
+              eventData.response = _createResponseFromXhr(xhr);
+              if(eventData.response.status === 200)
+              {
+                resolve(eventData);
+              }
+              else
+              {
+                throw eventData.response.rawResponse || eventData.response.statusText;
+              }
+            })
+          .then(
+            () =>
+            {
               if(request.triggerEvent(events.RETRIEVED, eventData, true))
               {
-                _handleResponse(request, response)
+                _handleResponse(request, eventData.response)
                   .then(() => request.triggerEvent(events.COMPLETE, eventData));
               }
-              resolve(eventData);
             })
           .then(
             () =>
@@ -373,12 +396,9 @@ export function load(request)
           .catch(
             (e) =>
             {
-              if(e && e.statusText)
-              {
-                console.warn(e.statusText);
-              }
               _setPageletState(targetElement, _pageletStates.ERROR);
               request.triggerEvent(events.ERROR);
+              reject(e);
             });
 
         request.triggerEvent(events.REQUESTED);
@@ -510,13 +530,14 @@ function _resolveTarget(targetId)
 function _createResponseFromXhr(xhr)
 {
   const contentTypeHeader = xhr.getResponseHeader('content-type');
-  let [contentType] = contentTypeHeader.split(';');
+  let [contentType] = (contentTypeHeader && contentTypeHeader.split(';')) || [''];
 
-  const responseString = xhr.responseText.replace(/^while\(1\);|for\(;;\);|\)]}'/, '');
+  const rawResponse = xhr.responseText.replace(/^while\(1\);|for\(;;\);|\)]}'/, '');
 
   const xhrProps = {
     status: xhr.status,
     statusText: xhr.statusText,
+    rawResponse: rawResponse,
     headers: _headersToObject(xhr.getAllResponseHeaders()),
   };
 
@@ -528,12 +549,12 @@ function _createResponseFromXhr(xhr)
       const pageletProps = {};
       if(xhr.status === 200)
       {
-        pageletProps.actions = [{action: 'content', content: responseString}];
+        pageletProps.actions = [{action: 'content', content: rawResponse}];
       }
       return new PageletResponse(Object.assign(pageletProps, xhrProps));
     case 'application/json':
     case 'application/javascript':
-      return new PageletResponse(Object.assign(JSON.parse(responseString), xhrProps));
+      return new PageletResponse(Object.assign(JSON.parse(rawResponse), xhrProps));
     default:
       throw 'not a valid response';
   }

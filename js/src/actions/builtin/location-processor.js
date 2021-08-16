@@ -1,8 +1,8 @@
 import History from 'html5-history-api';
-import {ActionProcessor} from '../processor';
-import {pushState} from '../../pushState';
+import {ActionProcessor} from '../processor.js';
+import {pushState} from '../../pushState.js';
 
-const _location = History && History.location || window.location;
+const _location = (History && History.location) || window.location;
 
 export class LocationActionProcessor extends ActionProcessor
 {
