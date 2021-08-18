@@ -1,4 +1,4 @@
-import {ActionProcessor} from '../processor';
+import {ActionProcessor} from '../processor.js';
 
 export class SynchronousActionProcessor extends ActionProcessor
 {

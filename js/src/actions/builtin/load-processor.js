@@ -1,5 +1,5 @@
-import {ActionProcessor} from '../processor';
-import {load, Request} from '../../pagelets';
+import {ActionProcessor} from '../processor.js';
+import {load, Request} from '../../pagelets.js';
 
 export class LoadActionProcessor extends ActionProcessor
 {

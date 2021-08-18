@@ -1,5 +1,5 @@
-import {ActionProcessor} from '../processor';
-import {refresh} from '../../pagelets';
+import {ActionProcessor} from '../processor.js';
+import {refresh} from '../../pagelets.js';
 
 export class RefreshActionProcessor extends ActionProcessor
 {

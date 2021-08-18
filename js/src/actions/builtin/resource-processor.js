@@ -1,5 +1,5 @@
-import {ActionProcessor} from '../processor';
-import {loadCss, loadScripts} from '../../resources';
+import {ActionProcessor} from '../processor.js';
+import {loadCss, loadScripts} from '../../resources.js';
 
 export class ResourceActionProcessor extends ActionProcessor
 {
@@ -55,11 +55,11 @@ export class ResourceActionProcessor extends ActionProcessor
  * Found here: https://gist.github.com/vaiorabbit/5657561
  * Ref.: http://isthe.com/chongo/tech/comp/fnv/
  *
- * @param {string} str the input value
- * @param {boolean} [asString=false] set to true to return the hash value as
+ * @param {String} str the input value
+ * @param {Boolean} [asString=false] set to true to return the hash value as
  *     8-digit hex string instead of an integer
- * @param {integer} [seed] optionally pass the hash of the previous chunk
- * @returns {integer | string}
+ * @param {Number} [seed] optionally pass the hash of the previous chunk
+ * @returns {Number | String}
  */
 function hashFnv32a(str, asString, seed)
 {
