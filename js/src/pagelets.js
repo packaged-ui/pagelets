@@ -3,6 +3,7 @@ import History from 'html5-history-api';
 import EventTarget from '@ungap/event-target';
 import {ActionIterator} from './actions/actionIterator.js';
 import {pushState} from './pushState.js';
+import {onReadyState, readyStates} from '@packaged-ui/ready-promise';
 
 /**
  * Initialisation options
@@ -131,7 +132,7 @@ class PageletRequest extends EventTarget
 
   getRequestMethod()
   {
-    return this.method.toLowerCase();
+    return (this.method || '').toLowerCase() || undefined;
   }
 
   get getPushUrl()
@@ -166,9 +167,7 @@ class PageletRequest extends EventTarget
     if(element instanceof HTMLFormElement)
     {
       request.url = request.url || element.getAttribute('action');
-
-      request.data = {};
-      (new FormData(element)).forEach((v, k) => request.data[k] = v);
+      request.data = new FormData(element);
       request.method = element.getAttribute('method').toLowerCase() || undefined;
 
       if((!request.pushUrl) && element.method === 'get')
@@ -208,67 +207,63 @@ export function init(options = {})
     return;
   }
   _isInitialized = true;
-  _doInit() || document.addEventListener('readystatechange', _doInit);
+  onReadyState(readyStates.loaded).then(_doInit);
+  onReadyState(readyStates.complete).then(_initialiseNewPagelets);
 }
 
 function _doInit()
 {
-  if(document.readyState === 'complete')
-  {
-    pushState(
-      _resolveTarget(_options.defaultTarget),
-      window.location.toString(),
-      window.location.toString(),
-      true,
-    );
+  pushState(
+    _resolveTarget(_options.defaultTarget),
+    window.location.toString(),
+    window.location.toString(),
+    true,
+  );
 
-    _options.listenElement.addEventListener(
-      'click',
-      (e) =>
+  _options.listenElement.addEventListener(
+    'click',
+    (e) =>
+    {
+      if(e.target instanceof Element)
       {
-        if(e.target instanceof Element)
+        let link = e.target.closest(_options.selector);
+        if(link === null && e.path && e.path.length > 0)
         {
-          let link = e.target.closest(_options.selector);
-          if(link === null && e.path && e.path.length > 0)
-          {
-            link = e.path[0].closest(_options.selector);
-          }
-          if(link)
-          {
-            const href = link.getAttribute('href');
-            if(/^data:/.test(href))
-            {
-              return;
-            }
-            e.preventDefault();
-            load(new PageletRequest(
-              {
-                url: link.getAttribute('data-uri') || href,
-                pushUrl: href,
-                sourceElement: link,
-                targetElement: link.getAttribute('data-target'),
-              }));
-          }
+          link = e.path[0].closest(_options.selector);
         }
-      },
-    );
-
-    _options.listenElement.addEventListener(
-      'submit',
-      (e) =>
-      {
-        if(_options.formSelector && e.target instanceof HTMLFormElement && e.target.matches(_options.formSelector))
+        if(link)
         {
-          load(PageletRequest.fromElement(e.target)).catch((error) => console.log(error));
+          const href = link.getAttribute('href');
+          if(/^data:/.test(href))
+          {
+            return;
+          }
           e.preventDefault();
+          load(new PageletRequest(
+            {
+              url: link.getAttribute('data-uri') || href,
+              pushUrl: href,
+              sourceElement: link,
+              targetElement: link.getAttribute('data-target'),
+            }));
         }
-      },
-    );
+      }
+    },
+  );
 
-    _initialiseNewPagelets();
-    return true;
-  }
-  return false;
+  _options.listenElement.addEventListener(
+    'submit',
+    (e) =>
+    {
+      if(_options.formSelector && e.target instanceof HTMLFormElement && e.target.matches(_options.formSelector))
+      {
+        load(PageletRequest.fromElement(e.target)).catch((error) => console.log(error));
+        e.preventDefault();
+      }
+    },
+  );
+
+  _initialiseNewPagelets();
 }
 
 const _currentRequests = new Map();

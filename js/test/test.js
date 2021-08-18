@@ -106,7 +106,7 @@ describe('fromElement', function ()
       chai.assert.equal(req.url, _s + '/test-url');
       chai.assert.equal(req.getRequestMethod(), 'get');
       chai.assert.equal(req.getPushUrl, _s + '/test-url');
-      chai.assert.deepEqual(req.data, formData);
+      chai.assert.deepEqual(req.data, _objectToFormData(formData));
       return _assertRawResponse(req, JSON.stringify(formData));
     });
     it('get form-action query', function ()
@@ -117,7 +117,7 @@ describe('fromElement', function ()
       chai.assert.equal(req.url, _s + '/test-url?foo=bar');
       chai.assert.equal(req.getRequestMethod(), 'get');
       chai.assert.equal(req.getPushUrl, _s + '/test-url?foo=bar');
-      chai.assert.deepEqual(req.data, formData);
+      chai.assert.deepEqual(req.data, _objectToFormData(formData));
       return _assertRawResponse(req, JSON.stringify(Object.assign({foo: 'bar'}, formData)));
     });
     it('get form-data-uri', function ()
@@ -128,7 +128,7 @@ describe('fromElement', function ()
       chai.assert.equal(req.url, _s + '/test-data-url');
       chai.assert.equal(req.getRequestMethod(), 'get');
       chai.assert.equal(req.getPushUrl, _s + '/test-url');
-      chai.assert.deepEqual(req.data, formData);
+      chai.assert.deepEqual(req.data, _objectToFormData(formData));
       return _assertRawResponse(req, JSON.stringify(formData));
     });
     it('get form-data-uri query', function ()
@@ -142,7 +142,7 @@ describe('fromElement', function ()
       chai.assert.equal(req.url, _s + '/test-data-url?foo=bar');
       chai.assert.equal(req.getRequestMethod(), 'get');
       chai.assert.equal(req.getPushUrl, _s + '/test-url');
-      chai.assert.deepEqual(req.data, formData);
+      chai.assert.deepEqual(req.data, _objectToFormData(formData));
       return _assertRawResponse(req, JSON.stringify(Object.assign({foo: 'bar'}, formData)));
     });
   });
@@ -158,7 +158,7 @@ describe('fromElement', function ()
       _formAdd(form, formData);
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-url');
-      chai.assert.deepEqual(req.data, formData);
+      chai.assert.deepEqual(req.data, _objectToFormData(formData));
       return _assertRawResponse(req, JSON.stringify(formData));
     });
     it('post form-action query', function ()
@@ -167,7 +167,7 @@ describe('fromElement', function ()
       _formAdd(form, formData);
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-url?foo=bar');
-      chai.assert.deepEqual(req.data, formData);
+      chai.assert.deepEqual(req.data, _objectToFormData(formData));
       return _assertRawResponse(req, JSON.stringify(formData));
     });
     it('post form-data-uri', function ()
@@ -176,7 +176,7 @@ describe('fromElement', function ()
       _formAdd(form, formData);
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-data-url');
-      chai.assert.deepEqual(req.data, formData);
+      chai.assert.deepEqual(req.data, _objectToFormData(formData));
       return _assertRawResponse(req, JSON.stringify(formData));
     });
     it('post form-data-uri', function ()
@@ -188,7 +188,7 @@ describe('fromElement', function ()
       _formAdd(form, formData);
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-data-url?foo=bar');
-      chai.assert.deepEqual(req.data, formData);
+      chai.assert.deepEqual(req.data, _objectToFormData(formData));
       return _assertRawResponse(req, JSON.stringify(formData));
     });
   });
@@ -202,7 +202,7 @@ describe('fromElement', function ()
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-url');
       chai.assert.equal(req.getRequestMethod(), 'delete');
-      chai.assert.deepEqual(req.data, formData);
+      chai.assert.deepEqual(req.data, _objectToFormData(formData));
       return _assertRawResponse(req, JSON.stringify(formData));
     });
     it('delete form-action query', function ()
@@ -212,7 +212,7 @@ describe('fromElement', function ()
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-url?foo=bar');
       chai.assert.equal(req.getRequestMethod(), 'delete');
-      chai.assert.deepEqual(req.data, formData);
+      chai.assert.deepEqual(req.data, _objectToFormData(formData));
       return _assertRawResponse(req, JSON.stringify(formData));
     });
     it('delete form-data-uri', function ()
@@ -222,7 +222,7 @@ describe('fromElement', function ()
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-data-url');
       chai.assert.equal(req.getRequestMethod(), 'delete');
-      chai.assert.deepEqual(req.data, formData);
+      chai.assert.deepEqual(req.data, _objectToFormData(formData));
       return _assertRawResponse(req, JSON.stringify(formData));
     });
     it('delete form-data-uri', function ()
@@ -235,7 +235,7 @@ describe('fromElement', function ()
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-data-url?foo=bar');
       chai.assert.equal(req.getRequestMethod(), 'delete');
-      chai.assert.deepEqual(req.data, formData);
+      chai.assert.deepEqual(req.data, _objectToFormData(formData));
       return _assertRawResponse(req, JSON.stringify(formData));
     });
   });
@@ -272,4 +272,16 @@ function _assertRawResponse(req, expect)
                  .eventually
                  .deep
                  .equal(expect);
+}
+
+function _objectToFormData(o)
+{
+  return Object.entries(o).reduce(
+    (data, entry) =>
+    {
+      data.append(...entry);
+      return data;
+    },
+    new FormData()
+  );
 }

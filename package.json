@@ -14,7 +14,8 @@
   ],
   "type": "module",
   "dependencies": {
-    "@packaged-ui/request": "^1.0.1",
+    "@packaged-ui/ready-promise": "^1.0.0",
+    "@packaged-ui/request": "^1.0.2",
     "@ungap/event-target": "^0.2.3",
     "html5-history-api": "^4.2.10"
   },
