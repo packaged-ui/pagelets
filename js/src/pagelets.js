@@ -99,7 +99,6 @@ class PageletRequest extends EventTarget
   constructor(properties)
   {
     super();
-    this.data = {};
     properties.iterator = properties.iterator || _options.iterator;
     Object.assign(this, properties);
   }
@@ -132,7 +131,7 @@ class PageletRequest extends EventTarget
 
   getRequestMethod()
   {
-    return (this.method || (Object.entries(this.data).length > 0 ? 'post' : 'get')).toLowerCase();
+    return this.method.toLowerCase();
   }
 
   get getPushUrl()
@@ -170,7 +169,7 @@ class PageletRequest extends EventTarget
 
       request.data = {};
       (new FormData(element)).forEach((v, k) => request.data[k] = v);
-      request.method = element.getAttribute('method').toLowerCase();
+      request.method = element.getAttribute('method').toLowerCase() || undefined;
 
       if((!request.pushUrl) && element.method === 'get')
       {
