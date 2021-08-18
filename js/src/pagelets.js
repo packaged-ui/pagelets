@@ -135,20 +135,6 @@ class PageletRequest extends EventTarget
     return (this.method || (Object.entries(this.data).length > 0 ? 'post' : 'get')).toLowerCase();
   }
 
-  getRequestUrl()
-  {
-    let url = this.url;
-    const data = Object.entries(this.data);
-    if(this.method === 'get' && data.length > 0)
-    {
-      url = url + (url.indexOf('?') > -1 ? '&' : '?')
-        + [...data]
-          .map(e => `${encodeURIComponent(e[0])}=${encodeURIComponent(String(e[1]))}`)
-          .join('&');
-    }
-    return url;
-  }
-
   get getPushUrl()
   {
     return this.pushUrl || (this.sourceElement && this.sourceElement.getAttribute('href')) || null;
@@ -323,7 +309,7 @@ export function load(request)
           _currentRequests.delete(targetElement);
         }
 
-        const req = new Request(request.getRequestUrl());
+        const req = new Request(request.url);
         _currentRequests.set(targetElement, req);
 
         req
@@ -370,29 +356,23 @@ export function load(request)
             {
               _setPageletState(targetElement, _pageletStates.LOADED);
               eventData.response = _createResponseFromXhr(xhr);
-              if(eventData.response.status === 200)
-              {
-                resolve(eventData);
-              }
-              else
-              {
-                throw eventData.response.rawResponse || eventData.response.statusText;
-              }
             })
           .then(
             () =>
             {
               if(request.triggerEvent(events.RETRIEVED, eventData, true))
               {
-                _handleResponse(request, eventData.response)
-                  .then(() => request.triggerEvent(events.COMPLETE, eventData));
+                return _handleResponse(request, eventData.response);
               }
             })
           .then(
             () =>
             {
+              request.triggerEvent(events.COMPLETE, eventData);
               _setPageletState(targetElement, _pageletStates.NONE);
-            })
+              resolve(eventData);
+            }
+          )
           .catch(
             (e) =>
             {
@@ -547,10 +527,7 @@ function _createResponseFromXhr(xhr)
     case 'text/plain':
     case 'text/html':
       const pageletProps = {};
-      if(xhr.status === 200)
-      {
-        pageletProps.actions = [{action: 'content', content: rawResponse}];
-      }
+      pageletProps.actions = [{action: 'content', content: rawResponse}];
       return new PageletResponse(Object.assign(pageletProps, xhrProps));
     case 'application/json':
     case 'application/javascript':
@@ -604,13 +581,7 @@ function _handleResponse(request, response)
             pushState(request.getResolvedTarget, requestPushUrl, request.url, false);
           }
         }
-      })
-    .catch(
-      () =>
-      {
-        _setPageletState(targetElement, _pageletStates.ERROR);
-        request.triggerEvent(events.ERROR);
-      },
+      }
     );
 }
 

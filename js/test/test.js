@@ -1,29 +1,57 @@
+import {port as _p, server as _s} from './_setup.js';
 import chai from 'chai';
-import jsdom from 'jsdom-global';
-import http from 'http';
 import chaiAsPromised from 'chai-as-promised';
+import http from 'http';
 import {Pagelets} from '../index.js';
+import multipart from 'parse-multipart-data';
 
 chai.use(chaiAsPromised);
 chai.should();
-
-const _p = 8876;
-const _s = 'http://127.0.0.1:' + _p;
-
-jsdom(undefined, {url: _s});
 
 const server = http.createServer(
   function (req, res)
   {
     if(req.url === '/fail')
     {
-      res.writeHead(400);
-      res.end('request failed');
+      res.writeHead(400, {'Content-Type': 'text/plain'});
+      res.end();
       return;
     }
 
-    res.writeHead(200, {'Content-Type': 'text/plain'});
-    res.end('Hello, world!\n');
+    let body = '';
+    req.on('data', function (data)
+    {
+      body += data;
+    });
+
+    req.on('end', function ()
+    {
+      res.writeHead(200, {'Content-Type': 'text/plain'});
+      if(req.method.toLowerCase() === 'get')
+      {
+        const [, query] = req.url.split('?');
+        let data = Object.fromEntries((new URLSearchParams(query)).entries());
+        data = Object.keys(data).length > 0 && JSON.stringify(data) || 'abc123';
+        res.end(data);
+      }
+      else
+      {
+        let data = {};
+        const _boundary = multipart.getBoundary(req.headers['content-type']);
+        if(req.headers['content-type'] && _boundary)
+        {
+          multipart.parse(Buffer.from(body, 'utf8'), _boundary)
+                   .forEach((d) => {data[d.name] = d.data.toString();});
+        }
+        else
+        {
+          data = Object.fromEntries((new URLSearchParams(body)).entries());
+        }
+
+        data = Object.keys(data).length > 0 && JSON.stringify(data) || 'abc123';
+        res.end(data);
+      }
+    });
   }
 );
 
@@ -37,7 +65,7 @@ describe('test server', function ()
   {
     http.get(_s, function (res)
     {
-      chai.assert.equal(200, res.statusCode);
+      chai.assert.equal(res.statusCode, 200);
       done();
     });
   });
@@ -45,8 +73,7 @@ describe('test server', function ()
   {
     http.get(_s + '/fail', function (res)
     {
-      chai.assert.equal(400, res.statusCode);
-      res.on('data', function (chunk) {chai.assert.equal('request failed', chunk);});
+      chai.assert.equal(res.statusCode, 400);
       done();
     });
   });
@@ -59,10 +86,10 @@ describe('invalid checks', function ()
     const req = new Pagelets.Request({url: 'data://failure'});
     return chai.assert.isRejected(Pagelets.load(req), 'invalid url');
   });
-  it('invalid response', function ()
+  it('invalid status code', function ()
   {
     const req = new Pagelets.Request({url: _s + '/fail'});
-    return chai.assert.isRejected(Pagelets.load(req), 'request failed');
+    chai.assert.isFulfilled(Pagelets.load(req), 'request failed');
   });
 });
 
@@ -78,9 +105,9 @@ describe('fromElement', function ()
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-url');
       chai.assert.equal(req.getRequestMethod(), 'get');
-      chai.assert.equal(req.getRequestUrl(), _s + '/test-url?test1=1&test2=2');
       chai.assert.equal(req.getPushUrl, _s + '/test-url');
       chai.assert.deepEqual(req.data, formData);
+      return _assertRawResponse(req, JSON.stringify(formData));
     });
     it('get form-action query', function ()
     {
@@ -89,9 +116,9 @@ describe('fromElement', function ()
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-url?foo=bar');
       chai.assert.equal(req.getRequestMethod(), 'get');
-      chai.assert.equal(req.getRequestUrl(), _s + '/test-url?foo=bar&test1=1&test2=2');
       chai.assert.equal(req.getPushUrl, _s + '/test-url?foo=bar');
       chai.assert.deepEqual(req.data, formData);
+      return _assertRawResponse(req, JSON.stringify(Object.assign({foo: 'bar'}, formData)));
     });
     it('get form-data-uri', function ()
     {
@@ -100,9 +127,9 @@ describe('fromElement', function ()
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-data-url');
       chai.assert.equal(req.getRequestMethod(), 'get');
-      chai.assert.equal(req.getRequestUrl(), _s + '/test-data-url?test1=1&test2=2');
       chai.assert.equal(req.getPushUrl, _s + '/test-url');
       chai.assert.deepEqual(req.data, formData);
+      return _assertRawResponse(req, JSON.stringify(formData));
     });
     it('get form-data-uri query', function ()
     {
@@ -114,9 +141,9 @@ describe('fromElement', function ()
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-data-url?foo=bar');
       chai.assert.equal(req.getRequestMethod(), 'get');
-      chai.assert.equal(req.getRequestUrl(), _s + '/test-data-url?foo=bar&test1=1&test2=2');
       chai.assert.equal(req.getPushUrl, _s + '/test-url');
       chai.assert.deepEqual(req.data, formData);
+      return _assertRawResponse(req, JSON.stringify(Object.assign({foo: 'bar'}, formData)));
     });
   });
 
@@ -124,12 +151,15 @@ describe('fromElement', function ()
   {
     it('post form-action', function ()
     {
-      const form = _getElement('form', {method: 'post', action: _s + '/test-url'});
+      const form = _getElement(
+        'form',
+        {method: 'post', enctype: 'application/x-www-form-urlencoded', action: _s + '/test-url'}
+      );
       _formAdd(form, formData);
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-url');
-      chai.assert.equal(req.getRequestUrl(), _s + '/test-url');
       chai.assert.deepEqual(req.data, formData);
+      return _assertRawResponse(req, JSON.stringify(formData));
     });
     it('post form-action query', function ()
     {
@@ -137,8 +167,8 @@ describe('fromElement', function ()
       _formAdd(form, formData);
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-url?foo=bar');
-      chai.assert.equal(req.getRequestUrl(), _s + '/test-url?foo=bar');
       chai.assert.deepEqual(req.data, formData);
+      return _assertRawResponse(req, JSON.stringify(formData));
     });
     it('post form-data-uri', function ()
     {
@@ -146,8 +176,8 @@ describe('fromElement', function ()
       _formAdd(form, formData);
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-data-url');
-      chai.assert.equal(req.getRequestUrl(), _s + '/test-data-url');
       chai.assert.deepEqual(req.data, formData);
+      return _assertRawResponse(req, JSON.stringify(formData));
     });
     it('post form-data-uri', function ()
     {
@@ -158,8 +188,8 @@ describe('fromElement', function ()
       _formAdd(form, formData);
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-data-url?foo=bar');
-      chai.assert.equal(req.getRequestUrl(), _s + '/test-data-url?foo=bar');
       chai.assert.deepEqual(req.data, formData);
+      return _assertRawResponse(req, JSON.stringify(formData));
     });
   });
 
@@ -171,9 +201,9 @@ describe('fromElement', function ()
       _formAdd(form, formData);
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-url');
-      chai.assert.equal(req.getRequestUrl(), _s + '/test-url');
       chai.assert.equal(req.getRequestMethod(), 'delete');
       chai.assert.deepEqual(req.data, formData);
+      return _assertRawResponse(req, JSON.stringify(formData));
     });
     it('delete form-action query', function ()
     {
@@ -181,9 +211,9 @@ describe('fromElement', function ()
       _formAdd(form, formData);
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-url?foo=bar');
-      chai.assert.equal(req.getRequestUrl(), _s + '/test-url?foo=bar');
       chai.assert.equal(req.getRequestMethod(), 'delete');
       chai.assert.deepEqual(req.data, formData);
+      return _assertRawResponse(req, JSON.stringify(formData));
     });
     it('delete form-data-uri', function ()
     {
@@ -191,9 +221,9 @@ describe('fromElement', function ()
       _formAdd(form, formData);
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-data-url');
-      chai.assert.equal(req.getRequestUrl(), _s + '/test-data-url');
       chai.assert.equal(req.getRequestMethod(), 'delete');
       chai.assert.deepEqual(req.data, formData);
+      return _assertRawResponse(req, JSON.stringify(formData));
     });
     it('delete form-data-uri', function ()
     {
@@ -204,9 +234,9 @@ describe('fromElement', function ()
       _formAdd(form, formData);
       const req = Pagelets.Request.fromElement(form);
       chai.assert.equal(req.url, _s + '/test-data-url?foo=bar');
-      chai.assert.equal(req.getRequestUrl(), _s + '/test-data-url?foo=bar');
       chai.assert.equal(req.getRequestMethod(), 'delete');
       chai.assert.deepEqual(req.data, formData);
+      return _assertRawResponse(req, JSON.stringify(formData));
     });
   });
 });
@@ -232,4 +262,14 @@ function _formAdd(form, inputs = {})
       form.append(ele);
     }
   );
+}
+
+function _assertRawResponse(req, expect)
+{
+  return Pagelets.load(req)
+                 .then(function (r) {return r.response.rawResponse;})
+                 .should
+                 .eventually
+                 .deep
+                 .equal(expect);
 }
