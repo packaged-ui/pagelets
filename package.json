@@ -1,6 +1,6 @@
 {
   "name": "@packaged-ui/pagelets",
-  "version": "1.8.1",
+  "version": "2.0.0",
   "main": "js/index.js",
   "author": {
     "name": "Tom Kay",
