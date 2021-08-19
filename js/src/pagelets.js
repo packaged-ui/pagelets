@@ -438,6 +438,10 @@ export function refresh(element)
           targetElement: element,
         }));
     }
+    else
+    {
+      _initialiseNewPagelets(element);
+    }
   }
 }
 
