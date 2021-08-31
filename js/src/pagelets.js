@@ -310,12 +310,16 @@ export function load(request)
           .setWithCredentials(request.withCredentials)
           .setMethod(request.getRequestMethod())
           .setHeaders(
-            {
-              'x-requested-with': 'XMLHttpRequest',
-              'x-pagelet-request': '1',
-              'x-pagelet-target': targetElement.getAttribute('id') || '',
-              'x-pagelet-fragment': request.url.replace(/^.*?(#|$)/, ''),
-            })
+            Object.assign(
+              {},
+              {
+                'x-requested-with': 'XMLHttpRequest',
+                'x-pagelet-request': '1',
+                'x-pagelet-target': targetElement.getAttribute('id') || '',
+                'x-pagelet-fragment': request.url.replace(/^.*?(#|$)/, ''),
+              },
+              request.headers || {},
+            ))
           .setEventCallback(
             (e) =>
             {
