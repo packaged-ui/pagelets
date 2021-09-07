@@ -152,7 +152,7 @@ class PageletRequest extends EventTarget
       {detail: Object.assign({}, data, {request: this}), bubbles: true, cancelable: cancelable},
     );
     // trigger event on the request object first, then trigger it against the listen element
-    return this.dispatchEvent(event) && _options.listenElement.dispatchEvent(event);
+    return this.dispatchEvent(event) && (this.sourceElement || _options.listenElement).dispatchEvent(event);
   }
 
   static fromElement(element)
@@ -255,7 +255,7 @@ function _doInit()
     'submit',
     (e) =>
     {
-      if(_options.formSelector && e.target instanceof HTMLFormElement && e.target.matches(_options.formSelector))
+      if(_options.formSelector && e.target.matches(_options.formSelector))
       {
         load(PageletRequest.fromElement(e.target)).catch((error) => console.log(error));
         e.preventDefault();
