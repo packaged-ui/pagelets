@@ -15,6 +15,7 @@ import {onReadyState, readyStates} from '@packaged-ui/ready-promise';
  * @property {Node}           [listenElement] - Listen to links within this container only
  * @property {int}            [minRefreshRate] - Minimum time to wait between pagelet refreshes
  * @property {ActionIterator} [iterator] - set the default iterator
+ * @property {boolean}        [composedEvents] - events dispatched by pagelets will be "composed" (bubble out of shadow dom)
  */
 
 /**
@@ -78,6 +79,7 @@ const _pageletStates = {
 };
 
 /**
+ * default pagelet initialization options
  * @type {Pagelets~InitOptions}
  */
 const _defaultOptions = {
@@ -87,6 +89,7 @@ const _defaultOptions = {
   listenElement: document,
   minRefreshRate: 500,
   iterator: new ActionIterator(),
+  composedEvents: false,
 };
 
 /**
@@ -149,7 +152,12 @@ class PageletRequest extends EventTarget
   {
     const event = new CustomEvent(
       eventType,
-      {detail: Object.assign({}, data, {request: this}), bubbles: true, cancelable: cancelable},
+      {
+        detail: Object.assign({}, data, {request: this}),
+        bubbles: true,
+        cancelable: cancelable,
+        composed: _options.composedEvents
+      },
     );
     // trigger event on the request object first, then trigger it against the listen element
     return this.dispatchEvent(event) && (this.sourceElement || _options.listenElement).dispatchEvent(event);
