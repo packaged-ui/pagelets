@@ -234,10 +234,11 @@ function _doInit()
     {
       if(e.target instanceof Element)
       {
+        const path = e.path || e.composedPath();
         let link = e.target.closest(_options.selector);
-        if(link === null && e.path && e.path.length > 0)
+        if(link === null && path && path.length > 0)
         {
-          link = e.path[0].closest(_options.selector);
+          link = path[0].closest(_options.selector);
         }
         if(link)
         {
