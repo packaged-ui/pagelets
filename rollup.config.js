@@ -4,7 +4,21 @@ import commonjs from '@rollup/plugin-commonjs';
 
 process.chdir(__dirname);
 
-const defaultCfg = {
+const bundle = {
+  input: './index.js',
+  output: {
+    file: './js/dist/pagelets.min.js',
+    name: 'Pagelets',
+    format: 'iife',
+  },
+  plugins: [
+    resolve({browser: true, preferBuiltins: false}),
+    commonjs(),
+    terser(),
+  ],
+};
+
+const demo = {
   input: './demo/demo.js',
   output: {
     file: './demo/demo.min.js',
@@ -15,7 +29,7 @@ const defaultCfg = {
     resolve({browser: true, preferBuiltins: false}),
     commonjs(),
     terser(),
-  ]
+  ],
 };
 
-export default [defaultCfg];
+export default [bundle, demo];
