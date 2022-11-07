@@ -1,6 +1,6 @@
 {
   "name": "@packaged-ui/pagelets",
-  "version": "2.3.3",
+  "version": "2.3.4",
   "main": "js/index.js",
   "author": {
     "name": "Tom Kay",
@@ -13,7 +13,7 @@
   ],
   "type": "module",
   "dependencies": {
-    "@packaged-ui/ready-promise": "^1.0.0",
+    "@packaged-ui/ready-promise": "^2.0.0",
     "@packaged-ui/request": "^1.0.2",
     "@ungap/event-target": "^0.2.3",
     "html5-history-api": "^4.2.10"

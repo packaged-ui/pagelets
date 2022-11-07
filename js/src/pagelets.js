@@ -156,7 +156,7 @@ class PageletRequest extends EventTarget
         detail: Object.assign({}, data, {request: this}),
         bubbles: true,
         cancelable: cancelable,
-        composed: _options.composedEvents
+        composed: _options.composedEvents,
       },
     );
     // trigger event on the request object first, then trigger it against the listen element
@@ -215,8 +215,8 @@ export function init(options = {})
     return;
   }
   _isInitialized = true;
-  onReadyState(readyStates.loaded).then(_doInit);
-  onReadyState(readyStates.complete).then(_initialiseNewPagelets);
+  onReadyState(readyStates.loaded).subscribe(_doInit);
+  onReadyState(readyStates.complete).subscribe(_initialiseNewPagelets);
 }
 
 function _doInit()
@@ -337,7 +337,9 @@ export function load(request)
                 case 'loadstart':
                   _setPageletState(
                     targetElement,
-                    targetElement.getAttribute('data-self-uri') === request.url ? _pageletStates.REFRESHING : _pageletStates.LOADING,
+                    targetElement.getAttribute('data-self-uri') === request.url ?
+                      _pageletStates.REFRESHING :
+                      _pageletStates.LOADING,
                   );
                   break;
                 case 'progress':
@@ -378,7 +380,7 @@ export function load(request)
               request.triggerEvent(events.COMPLETE, eventData);
               _setPageletState(targetElement, _pageletStates.NONE);
               resolve(eventData);
-            }
+            },
           )
           .catch(
             (e) =>
@@ -592,7 +594,7 @@ function _handleResponse(request, response)
             pushState(request.getResolvedTarget, requestPushUrl, request.url, false);
           }
         }
-      }
+      },
     );
 }
 
