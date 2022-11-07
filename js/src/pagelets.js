@@ -135,7 +135,7 @@ class PageletRequest extends EventTarget
 
   getRequestMethod()
   {
-    return (this.method || '').toLowerCase() || undefined;
+    return (this.method || '').toLowerCase() || 'get';
   }
 
   get getPushUrl()
