@@ -160,7 +160,9 @@ class PageletRequest extends EventTarget
       },
     );
     // trigger event on the request object first, then trigger it against the listen element
-    return this.dispatchEvent(event) && (this.sourceElement || _options.listenElement).dispatchEvent(event);
+    return this.dispatchEvent(event)
+      && (this.sourceElement && this.sourceElement.isConnected ? this.sourceElement : _options.listenElement)
+        .dispatchEvent(event);
   }
 
   static fromElement(element)
