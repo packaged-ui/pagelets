@@ -290,11 +290,11 @@ export function load(request)
   return new Promise(
     (resolve, reject) =>
     {
-      const targetElement = request.getResolvedTarget;
-      _setPageletState(targetElement, _pageletStates.REQUESTED);
-
       if(request.triggerEvent(events.PREPARE, {}, true))
       {
+        const targetElement = request.getResolvedTarget;
+        _setPageletState(targetElement, _pageletStates.REQUESTED);
+
         if((!request.url) || /^#/.test(request.url) || /^data:/.test(request.url))
         {
           _setPageletState(targetElement, _pageletStates.ERROR);
