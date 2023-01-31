@@ -59,23 +59,23 @@ import {onReadyState, readyStates} from '@packaged-ui/ready-promise';
 const _location = (History && History.location) || window.location;
 
 export const events = {
-  PREPARE: 'prepare',
-  PROGRESS: 'progress',
+  PREPARE:   'prepare',
+  PROGRESS:  'progress',
   REQUESTED: 'requested',
   RETRIEVED: 'retrieved',
-  RENDERED: 'rendered',
-  COMPLETE: 'complete',
+  RENDERED:  'rendered',
+  COMPLETE:  'complete',
   CANCELLED: 'cancelled',
-  ERROR: 'error',
+  ERROR:     'error',
 };
 
 const _pageletStates = {
-  NONE: '',
-  REQUESTED: 'requested',
-  LOADING: 'loading',
-  LOADED: 'loaded',
+  NONE:       '',
+  REQUESTED:  'requested',
+  LOADING:    'loading',
+  LOADED:     'loaded',
   REFRESHING: 'refreshing',
-  ERROR: 'error',
+  ERROR:      'error',
 };
 
 /**
@@ -83,20 +83,19 @@ const _pageletStates = {
  * @type {Pagelets~InitOptions}
  */
 const _defaultOptions = {
-  selector: 'a[data-uri],button[data-uri],[href][data-target]',
-  formSelector: 'form[data-uri],form[data-target]',
+  selector:               'a[data-uri],button[data-uri],[href][data-target]',
+  formSelector:           'form[data-uri],form[data-target]',
   allowPersistentTargets: true,
-  listenElement: document,
-  minRefreshRate: 500,
-  iterator: new ActionIterator(),
-  composedEvents: false,
+  listenElement:          document,
+  minRefreshRate:         500,
+  iterator:               new ActionIterator(),
+  composedEvents:         false,
 };
 
 /**
  * @extends {Pagelets~Request}
  */
-class PageletRequest extends EventTarget
-{
+class PageletRequest extends EventTarget {
   /**
    * @param {Pagelets~Request} [properties]
    */
@@ -133,6 +132,22 @@ class PageletRequest extends EventTarget
     return _resolveTarget(this.targetElement || _options.defaultTarget);
   }
 
+  /**
+   * @returns {String|null}
+   */
+  get getRequestedTarget()
+  {
+    if(typeof this.targetElement === 'string')
+    {
+      return this.targetElement;
+    }
+    if(this.targetElement instanceof Element)
+    {
+      return this.targetElement.id;
+    }
+    return null;
+  }
+
   getRequestMethod()
   {
     return (this.method || '').toLowerCase() || 'get';
@@ -153,10 +168,10 @@ class PageletRequest extends EventTarget
     const event = new CustomEvent(
       eventType,
       {
-        detail: Object.assign({}, data, {request: this}),
-        bubbles: true,
+        detail:     Object.assign({}, data, {request: this}),
+        bubbles:    true,
         cancelable: cancelable,
-        composed: _options.composedEvents,
+        composed:   _options.composedEvents,
       },
     );
     // trigger event on the request object first, then trigger it against the listen element
@@ -169,7 +184,7 @@ class PageletRequest extends EventTarget
   {
     const request = new PageletRequest(
       {
-        url: element.getAttribute('data-uri'),
+        url:           element.getAttribute('data-uri'),
         sourceElement: element,
         targetElement: element.getAttribute('data-target'),
       });
@@ -194,8 +209,7 @@ export {PageletRequest as Request};
 /**
  * @extends {Pagelets~Response}
  */
-class PageletResponse
-{
+class PageletResponse {
   constructor(properties)
   {
     Object.assign(this, properties);
@@ -232,8 +246,7 @@ function _doInit()
 
   _options.listenElement.addEventListener(
     'click',
-    (e) =>
-    {
+    (e) => {
       if(e.target instanceof Element)
       {
         const path = e.path || e.composedPath();
@@ -252,8 +265,8 @@ function _doInit()
           e.preventDefault();
           load(new PageletRequest(
             {
-              url: link.getAttribute('data-uri') || href,
-              pushUrl: href,
+              url:           link.getAttribute('data-uri') || href,
+              pushUrl:       href,
               sourceElement: link,
               targetElement: link.getAttribute('data-target'),
             }));
@@ -264,8 +277,7 @@ function _doInit()
 
   _options.listenElement.addEventListener(
     'submit',
-    (e) =>
-    {
+    (e) => {
       if(_options.formSelector && e.target.matches(_options.formSelector))
       {
         load(PageletRequest.fromElement(e.target)).catch((error) => console.log(error));
@@ -290,8 +302,7 @@ export function load(request)
     request = new PageletRequest(request);
   }
   return new Promise(
-    (resolve, reject) =>
-    {
+    (resolve, reject) => {
       if(request.triggerEvent(events.PREPARE, {}, true))
       {
         const targetElement = request.getResolvedTarget;
@@ -324,16 +335,15 @@ export function load(request)
             Object.assign(
               {},
               {
-                'x-requested-with': 'XMLHttpRequest',
-                'x-pagelet-request': '1',
-                'x-pagelet-target': targetElement.getAttribute('id') || '',
+                'x-requested-with':   'XMLHttpRequest',
+                'x-pagelet-request':  '1',
+                'x-pagelet-target':   request.getRequestedTarget || '',
                 'x-pagelet-fragment': request.url.replace(/^.*?(#|$)/, ''),
               },
               request.headers || {},
             ))
           .setEventCallback(
-            (e) =>
-            {
+            (e) => {
               switch(e.type)
               {
                 case 'loadstart':
@@ -363,30 +373,26 @@ export function load(request)
         req
           .send()
           .then(
-            (xhr) =>
-            {
+            (xhr) => {
               _setPageletState(targetElement, _pageletStates.LOADED);
               eventData.response = _createResponseFromXhr(xhr);
             })
           .then(
-            () =>
-            {
+            () => {
               if(request.triggerEvent(events.RETRIEVED, eventData, true))
               {
                 return _handleResponse(request, eventData.response);
               }
             })
           .then(
-            () =>
-            {
+            () => {
               request.triggerEvent(events.COMPLETE, eventData);
               _setPageletState(targetElement, _pageletStates.NONE);
               resolve(eventData);
             },
           )
           .catch(
-            (e) =>
-            {
+            (e) => {
               _setPageletState(targetElement, _pageletStates.ERROR);
               request.triggerEvent(events.ERROR);
               reject(e);
@@ -403,8 +409,7 @@ function _initialiseNewPagelets(parentElement)
 
   const pageletElements = parentElement.querySelectorAll('[data-self-uri]');
   pageletElements.forEach(
-    (pageletElement) =>
-    {
+    (pageletElement) => {
       if(!pageletElement.pageletInitialized)
       {
         pageletElement.pageletInitialized = true;
@@ -450,7 +455,7 @@ export function refresh(element)
     {
       load(new PageletRequest(
         {
-          url: url,
+          url:           url,
           sourceElement: element,
           targetElement: element,
         }));
@@ -474,8 +479,7 @@ function _setPageletState(element, state)
   }
 }
 
-window.addEventListener('popstate', (d) =>
-{
+window.addEventListener('popstate', (d) => {
   /**
    * @type {Pagelets~State}
    */
@@ -486,8 +490,7 @@ window.addEventListener('popstate', (d) =>
     if(state.paths.length > 0)
     {
       state.paths.slice(0).reduce(
-        async (p, {targetId, url}, i, arr) =>
-        {
+        async (p, {targetId, url}, i, arr) => {
           await p;
           const targetElement = _options.listenElement.getElementById(targetId);
           if(!targetElement)
@@ -530,10 +533,10 @@ function _createResponseFromXhr(xhr)
   const rawResponse = xhr.responseText.replace(/^while\(1\);|for\(;;\);|\)]}'/, '');
 
   const xhrProps = {
-    status: xhr.status,
-    statusText: xhr.statusText,
+    status:      xhr.status,
+    statusText:  xhr.statusText,
     rawResponse: rawResponse,
-    headers: _headersToObject(xhr.getAllResponseHeaders()),
+    headers:     _headersToObject(xhr.getAllResponseHeaders()),
   };
 
   switch(contentType)
@@ -556,8 +559,7 @@ function _headersToObject(headers)
 {
   const headerMap = {};
   headers.trim().split(/[\r\n]+/).forEach(
-    (line) =>
-    {
+    (line) => {
       const parts = line.split(': ');
       const header = parts.shift();
       headerMap[header] = parts.join(': ');
@@ -578,8 +580,7 @@ function _handleResponse(request, response)
     .iterator
     .iterate(response.actions, request, response, _options)
     .then(
-      () =>
-      {
+      () => {
         if(request.triggerEvent(events.RENDERED, {response}, true))
         {
           _initialiseNewPagelets(targetElement);
