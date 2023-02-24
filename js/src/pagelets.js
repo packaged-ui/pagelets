@@ -129,7 +129,19 @@ class PageletRequest extends EventTarget {
     {
       return this.targetElement;
     }
-    return _resolveTarget(this.targetElement || _options.defaultTarget);
+
+    let targetId = this.targetElement || _options.defaultTarget;
+    let target = document.body;
+
+    if (targetId && _options.listenElement.getElementById(targetId))
+    {
+      target = _options.listenElement.getElementById(targetId) || target;
+    }
+    else if (targetId && this.sourceElement && this.sourceElement.getRootNode() instanceof ShadowRoot)
+    {
+      target = this.sourceElement.getRootNode().getElementById(targetId) || target;
+    }
+    return target
   }
 
   /**
