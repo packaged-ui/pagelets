@@ -21,7 +21,7 @@ declare module '@packaged-ui/pagelets' {
   }
 
   export interface PageletEvent extends CustomEvent {
-    detail: RequestProperties extends object ? RequestProperties : object
+    detail: any,
     bubbles: boolean,
     cancelable: boolean,
     composed: boolean,
