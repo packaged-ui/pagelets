@@ -1,8 +1,3 @@
-// Type definitions for @packaged-ui/pagelets 2.3
-// Project: https://github.com/packaged-ui/pagelets
-// Definitions by: Kyle Essex <https://github.com/MrEssex>
-// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
-
 declare module '@packaged-ui/pagelets' {
 
   export type Events = {
