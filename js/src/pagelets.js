@@ -290,9 +290,11 @@ function _doInit()
   _options.listenElement.addEventListener(
     'submit',
     (e) => {
-      if(_options.formSelector && e.target.matches(_options.formSelector))
+      const path = e.composedPath() || e.path;
+      const target = path && path[0] || e.target;
+      if(_options.formSelector && target.matches(_options.formSelector))
       {
-        load(PageletRequest.fromElement(e.target)).catch((error) => console.log(error));
+        load(PageletRequest.fromElement(target)).catch((error) => console.log(error));
         e.preventDefault();
       }
     },
