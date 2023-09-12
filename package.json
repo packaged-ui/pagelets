@@ -2,6 +2,7 @@
   "name": "@packaged-ui/pagelets",
   "version": "2.3.7",
   "main": "js/index.js",
+  "types": "js/index.d.ts",
   "author": {
     "name": "Tom Kay",
     "email": "oridan82@gmail.com",
