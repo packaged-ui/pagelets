@@ -29,14 +29,15 @@ declare module '@packaged-ui/pagelets' {
 
   interface RequestProperties {
     url: string;
-    ActionIterator: ActionIterator;
-    sourceElement: Element;
-    targetElement: Element | string;
-    pushUrl: string;
-    headers: object;
-    data: object;
-    method: string;
-    withCredentials: boolean;
+    ActionIterator?: ActionIterator;
+    sourceElement?: Element;
+    targetElement?: Element | string;
+    pushUrl?: string;
+    headers?: object;
+    data?: object;
+    method?: string;
+    withCredentials?: boolean;
+    triggerOnRequest?: boolean;
   }
 
   interface ResponseProperties {
@@ -105,6 +106,6 @@ declare module '@packaged-ui/pagelets' {
       response: ResponseProperties
     }>
 
-    static Request: PageletRequest;
+    static Request: typeof PageletRequest;
   }
 }
