@@ -265,7 +265,14 @@ function _doInit()
         let link = e.target.closest(_options.selector);
         if(link === null && path && path.length > 0)
         {
-          link = path[0].closest(_options.selector);
+          path.every((v) => {
+            if(v instanceof Element && v.matches(_options.selector))
+            {
+              link = v;
+              return false;
+            }
+            return true;
+          });
         }
         if(link)
         {
