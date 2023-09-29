@@ -168,6 +168,10 @@ class PageletRequest extends EventTarget
 
   get getPushUrl()
   {
+    if(this.pushUrl === false)
+    {
+      return false;
+    }
     return this.pushUrl || (this.sourceElement && this.sourceElement.getAttribute('href')) || null;
   }
 
