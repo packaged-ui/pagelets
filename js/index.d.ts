@@ -1,4 +1,5 @@
-declare module '@packaged-ui/pagelets' {
+declare module '@packaged-ui/pagelets'
+{
 
   export type Events = {
     PREPARE: 'prepare',
@@ -20,14 +21,16 @@ declare module '@packaged-ui/pagelets' {
     ERROR: 'error',
   }
 
-  export interface PageletEvent extends CustomEvent {
+  export interface PageletEvent extends CustomEvent
+  {
     detail: any,
     bubbles: boolean,
     cancelable: boolean,
     composed: boolean,
   }
 
-  interface RequestProperties {
+  interface RequestProperties
+  {
     url: string;
     ActionIterator?: ActionIterator;
     sourceElement?: Element;
@@ -40,20 +43,23 @@ declare module '@packaged-ui/pagelets' {
     triggerOnRequest?: boolean;
   }
 
-  interface ResponseProperties {
+  interface ResponseProperties
+  {
     status: number;
     statusText: string;
     headers: object;
     actions: [];
   }
 
-  export class ActionIterator {
+  export class ActionIterator
+  {
     constructor();
 
     iterate(actions: [], request: RequestProperties, response: ResponseProperties, options: object): Promise<void>;
   }
 
-  export class PageletRequest extends EventTarget {
+  export class PageletRequest extends EventTarget
+  {
     constructor(properties: RequestProperties);
 
     addProcessor(processor: ActionProcessor): void;
@@ -71,17 +77,20 @@ declare module '@packaged-ui/pagelets' {
     fromElement(element: Element): PageletRequest;
   }
 
-  export class PageletResponse {
+  export class PageletResponse
+  {
     constructor(properties: ResponseProperties)
   }
 
-  export class ActionProcessor {
+  export class ActionProcessor
+  {
     get action(): string;
 
     process(action: any, request: PageletRequest, response: PageletResponse, options: any): any
   }
 
-  export interface InitOptions {
+  export interface InitOptions
+  {
     selector?: string;
     formSelector?: string;
     defaultTarget?: string;
@@ -92,7 +101,8 @@ declare module '@packaged-ui/pagelets' {
     composedEvents?: boolean;
   }
 
-  export class Pagelets {
+  export class Pagelets
+  {
     static init(options?: InitOptions): void;
 
     static events: Events;

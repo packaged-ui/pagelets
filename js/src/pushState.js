@@ -28,7 +28,7 @@ export function pushState(targetEle, pushUrl, ajaxUrl, replaceHistory)
       paths.push({targetId: t.getAttribute('id'), url: t.getAttribute('data-self-uri')});
     }
   }
-  while((t = t.parentElement));
+  while ((t = t.parentElement));
 
   // assign target an id, store globally so that when we popstate we can find where it should go.  If it does not exist, then we must reload the page.
   const state = {paths: paths.reverse(), pushUrl};

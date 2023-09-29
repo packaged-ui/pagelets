@@ -1,7 +1,10 @@
 function _filterScripts(arr)
 {
   return arr
-    .filter(function (url) {return !document.querySelector('script[src="' + url + '"]');});
+    .filter(function (url)
+    {
+      return !document.querySelector('script[src="' + url + '"]');
+    });
 }
 
 function _loadScript(url, attributes = {})
@@ -22,7 +25,10 @@ function _loadScript(url, attributes = {})
 function _filterCss(arr)
 {
   return arr
-    .filter(function (url) {return !document.querySelector('link[rel="stylesheet"][href="' + url + '"]');});
+    .filter(function (url)
+    {
+      return !document.querySelector('link[rel="stylesheet"][href="' + url + '"]');
+    });
 }
 
 function _loadCss(url, attributes = {})

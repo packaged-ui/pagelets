@@ -41,7 +41,10 @@ const server = http.createServer(
         if(req.headers['content-type'] && _boundary)
         {
           multipart.parse(Buffer.from(body, 'utf8'), _boundary)
-                   .forEach((d) => {data[d.name] = d.data.toString();});
+            .forEach((d) =>
+            {
+              data[d.name] = d.data.toString();
+            });
         }
         else
         {
@@ -55,9 +58,15 @@ const server = http.createServer(
   }
 );
 
-before(function () {server.listen(_p);});
+before(function ()
+{
+  server.listen(_p);
+});
 
-after(function () {server.close();});
+after(function ()
+{
+  server.close();
+});
 
 describe('test server', function ()
 {
@@ -267,11 +276,14 @@ function _formAdd(form, inputs = {})
 function _assertRawResponse(req, expect)
 {
   return Pagelets.load(req)
-                 .then(function (r) {return r.response.rawResponse;})
-                 .should
-                 .eventually
-                 .deep
-                 .equal(expect);
+    .then(function (r)
+    {
+      return r.response.rawResponse;
+    })
+    .should
+    .eventually
+    .deep
+    .equal(expect);
 }
 
 function _objectToFormData(o)

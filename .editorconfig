@@ -1,0 +1,36 @@
+# top-most EditorConfig file
+root = true
+
+[*]
+# Unix-style newlines with a newline ending every file
+end_of_line = lf
+insert_final_newline = true
+
+indent_style = space
+indent_size = 2
+
+ij_any_align_multiline_parameters = false
+
+ij_any_catch_on_new_line = true
+ij_any_else_on_new_line = true
+ij_any_finally_on_new_line = true
+
+ij_any_block_brace_style = next_line
+ij_any_method_brace_style = next_line
+ij_any_class_brace_style = next_line
+
+ij_any_space_before_if_parentheses = false
+ij_any_space_before_for_parentheses = false
+ij_any_space_before_switch_parentheses = false
+ij_any_space_before_catch_parentheses = false
+
+ij_any_line_comment_add_space = true
+ij_any_block_comment_add_space = true
+
+[{*.js,*.html}]
+ij_javascript_function_expression_brace_style = next_line
+ij_javascript_force_semicolon_style = true
+
+[*.ts]
+ij_typescript_function_expression_brace_style = next_line
+ij_typescript_force_semicolon_style = true
