@@ -66,7 +66,7 @@ export const events = {
   RENDERED: 'rendered',
   COMPLETE: 'complete',
   CANCELLED: 'cancelled',
-  ERROR: 'error'
+  ERROR: 'error',
 };
 
 const _pageletStates = {
@@ -75,7 +75,7 @@ const _pageletStates = {
   LOADING: 'loading',
   LOADED: 'loaded',
   REFRESHING: 'refreshing',
-  ERROR: 'error'
+  ERROR: 'error',
 };
 
 /**
@@ -89,7 +89,7 @@ const _defaultOptions = {
   listenElement: document,
   minRefreshRate: 500,
   iterator: new ActionIterator(),
-  composedEvents: false
+  composedEvents: false,
 };
 
 /**
@@ -188,8 +188,8 @@ class PageletRequest extends EventTarget
         detail: Object.assign({}, data, {request: this}),
         bubbles: true,
         cancelable: cancelable,
-        composed: _options.composedEvents
-      }
+        composed: _options.composedEvents,
+      },
     );
     // trigger event on the request object first, then trigger it against the listen element
     return this.dispatchEvent(event)
@@ -203,7 +203,7 @@ class PageletRequest extends EventTarget
       {
         url: element.getAttribute('data-uri'),
         sourceElement: element,
-        targetElement: element.getAttribute('data-target')
+        targetElement: element.getAttribute('data-target'),
       });
 
     if(element instanceof HTMLFormElement)
@@ -259,7 +259,7 @@ function _doInit()
     _resolveTarget(_options.defaultTarget),
     window.location.toString(),
     window.location.toString(),
-    true
+    true,
   );
 
   _options.listenElement.addEventListener(
@@ -295,11 +295,11 @@ function _doInit()
               url: link.getAttribute('data-uri') || href,
               pushUrl: href,
               sourceElement: link,
-              targetElement: link.getAttribute('data-target')
+              targetElement: link.getAttribute('data-target'),
             }));
         }
       }
-    }
+    },
   );
 
   _options.listenElement.addEventListener(
@@ -313,7 +313,7 @@ function _doInit()
         load(PageletRequest.fromElement(target)).catch((error) => console.log(error));
         e.preventDefault();
       }
-    }
+    },
   );
 
   _initialiseNewPagelets();
@@ -369,9 +369,9 @@ export function load(request)
                 'x-requested-with': 'XMLHttpRequest',
                 'x-pagelet-request': '1',
                 'x-pagelet-target': request.getRequestedTarget || '',
-                'x-pagelet-fragment': request.url.replace(/^.*?(#|$)/, '')
+                'x-pagelet-fragment': request.url.replace(/^.*?(#|$)/, ''),
               },
-              request.headers || {}
+              request.headers || {},
             ))
           .setEventCallback(
             (e) =>
@@ -383,7 +383,7 @@ export function load(request)
                     targetElement,
                     targetElement.getAttribute('data-self-uri') === request.url ?
                       _pageletStates.REFRESHING :
-                      _pageletStates.LOADING
+                      _pageletStates.LOADING,
                   );
                   break;
                 case 'progress':
@@ -424,7 +424,7 @@ export function load(request)
               request.triggerEvent(events.COMPLETE, eventData);
               _setPageletState(targetElement, _pageletStates.NONE);
               resolve(eventData);
-            }
+            },
           )
           .catch(
             (e) =>
@@ -447,7 +447,6 @@ function _initialiseNewPagelets(parentElement)
   pageletElements.forEach(
     (pageletElement) =>
     {
-      console.log(pageletElement);
       if(!pageletElement.pageletInitialized && !pageletElement.hasAttribute('data-ignore-init'))
       {
         pageletElement.pageletInitialized = true;
@@ -495,7 +494,7 @@ export function refresh(element)
         {
           url: url,
           sourceElement: element,
-          targetElement: element
+          targetElement: element,
         }));
     }
     else
@@ -576,7 +575,7 @@ function _createResponseFromXhr(xhr)
     status: xhr.status,
     statusText: xhr.statusText,
     rawResponse: rawResponse,
-    headers: _headersToObject(xhr.getAllResponseHeaders())
+    headers: _headersToObject(xhr.getAllResponseHeaders()),
   };
 
   switch(contentType)
@@ -639,7 +638,7 @@ function _handleResponse(request, response)
             pushState(request.getResolvedTarget, requestPushUrl, request.url, false);
           }
         }
-      }
+      },
     );
 }
 
