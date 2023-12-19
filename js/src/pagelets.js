@@ -447,7 +447,7 @@ function _initialiseNewPagelets(parentElement)
   pageletElements.forEach(
     (pageletElement) =>
     {
-      if(!pageletElement.pageletInitialized)
+      if(!pageletElement.pageletInitialized && !pageletElement.hasAttribute('data-ignore-init'))
       {
         pageletElement.pageletInitialized = true;
         refresh(pageletElement);
