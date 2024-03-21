@@ -40,6 +40,24 @@ class PageletLocation extends AbstractPageletAction
     return 'location';
   }
 
+  /**
+   * @return mixed
+   */
+  public function getUrl(): ?string
+  {
+    return $this->_url;
+  }
+
+  public function isReplaceHistory(): bool
+  {
+    return $this->_replaceHistory;
+  }
+
+  public function isReloadWindow(): bool
+  {
+    return $this->_reloadWindow;
+  }
+
   protected function _jsonSerialize(): array
   {
     return [
