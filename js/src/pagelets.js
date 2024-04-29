@@ -59,23 +59,23 @@ import {onReadyState, readyStates} from '@packaged-ui/ready-promise';
 const _location = (History && History.location) || window.location;
 
 export const events = {
-  PREPARE: 'prepare',
-  PROGRESS: 'progress',
+  PREPARE:   'prepare',
+  PROGRESS:  'progress',
   REQUESTED: 'requested',
   RETRIEVED: 'retrieved',
-  RENDERED: 'rendered',
-  COMPLETE: 'complete',
+  RENDERED:  'rendered',
+  COMPLETE:  'complete',
   CANCELLED: 'cancelled',
-  ERROR: 'error',
+  ERROR:     'error',
 };
 
 const _pageletStates = {
-  NONE: '',
-  REQUESTED: 'requested',
-  LOADING: 'loading',
-  LOADED: 'loaded',
+  NONE:       '',
+  REQUESTED:  'requested',
+  LOADING:    'loading',
+  LOADED:     'loaded',
   REFRESHING: 'refreshing',
-  ERROR: 'error',
+  ERROR:      'error',
 };
 
 /**
@@ -83,13 +83,13 @@ const _pageletStates = {
  * @type {Pagelets~InitOptions}
  */
 const _defaultOptions = {
-  selector: 'a[data-uri],button[data-uri],[href][data-target]',
-  formSelector: 'form[data-uri],form[data-target]',
+  selector:               'a[data-uri],button[data-uri],[href][data-target]',
+  formSelector:           'form[data-uri],form[data-target]',
   allowPersistentTargets: true,
-  listenElement: document,
-  minRefreshRate: 500,
-  iterator: new ActionIterator(),
-  composedEvents: false,
+  listenElement:          document,
+  minRefreshRate:         500,
+  iterator:               new ActionIterator(),
+  composedEvents:         false,
 };
 
 /**
@@ -185,10 +185,10 @@ class PageletRequest extends EventTarget
     const event = new CustomEvent(
       eventType,
       {
-        detail: Object.assign({}, data, {request: this}),
-        bubbles: true,
+        detail:     Object.assign({}, data, {request: this}),
+        bubbles:    true,
         cancelable: cancelable,
-        composed: _options.composedEvents,
+        composed:   _options.composedEvents,
       },
     );
     // trigger event on the request object first, then trigger it against the listen element
@@ -201,7 +201,7 @@ class PageletRequest extends EventTarget
   {
     const request = new PageletRequest(
       {
-        url: element.getAttribute('data-uri'),
+        url:           element.getAttribute('data-uri'),
         sourceElement: element,
         targetElement: element.getAttribute('data-target'),
       });
@@ -273,14 +273,14 @@ function _doInit()
         if(link === null && path && path.length > 0)
         {
           path.every((v) =>
-          {
-            if(v instanceof Element && v.matches(_options.selector))
-            {
-              link = v;
-              return false;
-            }
-            return true;
-          });
+                     {
+                       if(v instanceof Element && v.matches(_options.selector))
+                       {
+                         link = v;
+                         return false;
+                       }
+                       return true;
+                     });
         }
         if(link)
         {
@@ -292,8 +292,8 @@ function _doInit()
           e.preventDefault();
           load(new PageletRequest(
             {
-              url: link.getAttribute('data-uri') || href,
-              pushUrl: href,
+              url:           link.getAttribute('data-uri') || href,
+              pushUrl:       href,
               sourceElement: link,
               targetElement: link.getAttribute('data-target'),
             }));
@@ -366,9 +366,9 @@ export function load(request)
             Object.assign(
               {},
               {
-                'x-requested-with': 'XMLHttpRequest',
-                'x-pagelet-request': '1',
-                'x-pagelet-target': request.getRequestedTarget || '',
+                'x-requested-with':   'XMLHttpRequest',
+                'x-pagelet-request':  '1',
+                'x-pagelet-target':   request.getRequestedTarget || '',
                 'x-pagelet-fragment': request.url.replace(/^.*?(#|$)/, ''),
               },
               request.headers || {},
@@ -492,7 +492,7 @@ export function refresh(element)
     {
       load(new PageletRequest(
         {
-          url: url,
+          url:           url,
           sourceElement: element,
           targetElement: element,
         }));
@@ -501,6 +501,14 @@ export function refresh(element)
     {
       _initialiseNewPagelets(element);
     }
+  }
+}
+
+export function refreshChildElements(element)
+{
+  if(element)
+  {
+    _initialiseNewPagelets(element);
   }
 }
 
@@ -572,10 +580,10 @@ function _createResponseFromXhr(xhr)
   const rawResponse = xhr.responseText.replace(/^while\(1\);|for\(;;\);|\)]}'/, '');
 
   const xhrProps = {
-    status: xhr.status,
-    statusText: xhr.statusText,
+    status:      xhr.status,
+    statusText:  xhr.statusText,
     rawResponse: rawResponse,
-    headers: _headersToObject(xhr.getAllResponseHeaders()),
+    headers:     _headersToObject(xhr.getAllResponseHeaders()),
   };
 
   switch(contentType)
