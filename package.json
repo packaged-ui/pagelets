@@ -1,6 +1,6 @@
 {
   "name": "@packaged-ui/pagelets",
-  "version": "2.4.3",
+  "version": "2.5.0",
   "main": "js/index.js",
   "types": "js/index.d.ts",
   "author": {
