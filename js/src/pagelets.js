@@ -658,3 +658,8 @@ export function addProcessor(processor)
 {
   _options.iterator.addProcessor(processor);
 }
+
+export function clearProcessors()
+{
+  _options.iterator = new ActionIterator();
+}
