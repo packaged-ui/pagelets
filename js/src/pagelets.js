@@ -16,6 +16,7 @@ import {onReadyState, readyStates} from '@packaged-ui/ready-promise';
  * @property {int}            [minRefreshRate] - Minimum time to wait between pagelet refreshes
  * @property {ActionIterator} [iterator] - set the default iterator
  * @property {boolean}        [composedEvents] - events dispatched by pagelets will be "composed" (bubble out of shadow dom)
+ * @property {boolean}        [handlePopState] - Should pagelets handle popstate events
  */
 
 /**
@@ -90,6 +91,7 @@ const _defaultOptions = {
   minRefreshRate:         500,
   iterator:               new ActionIterator(),
   composedEvents:         false,
+  handlePopState:         true,
 };
 
 /**
@@ -249,6 +251,10 @@ export function init(options = {})
     return;
   }
   _isInitialized = true;
+  if(_options.handlePopState)
+  {
+    window.addEventListener('popstate', (e) => _popState(e));
+  }
   onReadyState(readyStates.loaded).subscribe(_doInit);
   onReadyState(readyStates.complete).subscribe(_initialiseNewPagelets);
 }
@@ -524,7 +530,7 @@ function _setPageletState(element, state)
   }
 }
 
-window.addEventListener('popstate', (d) =>
+function _popState(d)
 {
   /**
    * @type {Pagelets~State}
@@ -559,7 +565,7 @@ window.addEventListener('popstate', (d) =>
       _location.replace(state.pushUrl);
     }
   }
-});
+}
 
 function _resolveTarget(targetId)
 {
