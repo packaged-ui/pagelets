@@ -32,4 +32,19 @@ const demo = {
   ],
 };
 
-export default [bundle, demo];
+
+const existing = {
+  input: './demo/existing.js',
+  output: {
+    file: './demo/existing.min.js',
+    name: 'Pagelets',
+    format: 'iife',
+  },
+  plugins: [
+    resolve({browser: true, preferBuiltins: false}),
+    commonjs(),
+    terser(),
+  ],
+};
+
+export default [bundle, demo, existing];

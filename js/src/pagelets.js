@@ -236,6 +236,8 @@ class PageletResponse
   }
 }
 
+export {PageletResponse as Response};
+
 let _options = Object.assign({}, _defaultOptions);
 let _isInitialized = false;
 
@@ -665,7 +667,23 @@ export function addProcessor(processor)
   _options.iterator.addProcessor(processor);
 }
 
+export function getIterator()
+{
+  return _options.iterator;
+}
+
 export function clearProcessors()
 {
   _options.iterator = new ActionIterator();
+}
+
+/**
+ * Iterate over an existing response object
+ * @param {PageletResponse} response
+ * @param {PageletRequest} request
+ */
+export function iterateResponse(response, request)
+{
+  const iterator = _options.iterator;
+  return iterator.iterate(response.actions, request, response, _options);
 }
