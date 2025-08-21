@@ -13,7 +13,9 @@ use PackagedUI\Pagelets\Actions\PageletResource;
 
 class PageletResponse implements JsonSerializable
 {
-  private $_data = [];
+  private $_data = [
+    'actions' => []
+  ];
 
   public static function i()
   {
