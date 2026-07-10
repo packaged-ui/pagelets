@@ -18,6 +18,19 @@ const server = http.createServer(
       return;
     }
 
+    if(req.url === '/attachment')
+    {
+      res.writeHead(
+        200,
+        {
+          'Content-Type':        'application/octet-stream',
+          'Content-Disposition': 'attachment; filename="thing.bin"',
+        },
+      );
+      res.end('attachment-body');
+      return;
+    }
+
     let body = '';
     req.on('data', function (data)
     {
@@ -99,6 +112,90 @@ describe('invalid checks', function ()
   {
     const req = new Pagelets.Request({url: _s + '/fail'});
     chai.assert.isFulfilled(Pagelets.load(req), 'request failed');
+  });
+});
+
+describe('response decoding', function ()
+{
+  it('decodes text responses (arraybuffer -> string)', function ()
+  {
+    const req = new Pagelets.Request({url: _s});
+    return Pagelets.load(req)
+      .then(function (r)
+      {
+        return r.response.rawResponse;
+      })
+      .should
+      .eventually
+      .equal('abc123');
+  });
+});
+
+describe('attachment responses', function ()
+{
+  it('emits a download action instead of throwing', function ()
+  {
+    const req = new Pagelets.Request({url: _s + '/attachment'});
+    let captured;
+    req.addEventListener('retrieved', function (e)
+    {
+      e.preventDefault(); // stop the download action from running in the test env
+      captured = e.detail.response;
+    });
+    return Pagelets.load(req).then(function ()
+    {
+      chai.assert.equal(captured.actions[0].action, 'download');
+      chai.assert.equal(captured.actions[0].filename, 'thing.bin');
+    });
+  });
+
+  it('preserves the raw bytes in the download blob', function ()
+  {
+    const req = new Pagelets.Request({url: _s + '/attachment'});
+    let captured;
+    req.addEventListener('retrieved', function (e)
+    {
+      e.preventDefault();
+      captured = e.detail.response;
+    });
+    return Pagelets.load(req)
+      .then(function ()
+      {
+        return captured.actions[0].blob.text();
+      })
+      .should
+      .eventually
+      .equal('attachment-body');
+  });
+});
+
+describe('download action processor', function ()
+{
+  it('triggers an anchor download with the resolved filename', function ()
+  {
+    const origCreate = URL.createObjectURL;
+    const origRevoke = URL.revokeObjectURL;
+    const origClick = window.HTMLAnchorElement.prototype.click;
+    URL.createObjectURL = function () {return 'blob:mock';};
+    URL.revokeObjectURL = function () {};
+    let clicked;
+    window.HTMLAnchorElement.prototype.click = function () {clicked = this;};
+
+    const processor = new Pagelets.DownloadActionProcessor();
+    const action = {action: 'download', blob: new Blob(['x']), filename: 'report.csv'};
+
+    return Promise.resolve(processor.process(action, {}, {}, {listenElement: document}))
+      .then(function ()
+      {
+        chai.assert.equal(clicked.download, 'report.csv');
+        chai.assert.equal(clicked.href, 'blob:mock');
+      })
+      .finally(function ()
+      {
+        URL.createObjectURL = origCreate;
+        URL.revokeObjectURL = origRevoke;
+        window.HTMLAnchorElement.prototype.click = origClick;
+      });
   });
 });
 

@@ -5,6 +5,7 @@ import {ResourceActionProcessor} from './actions/builtin/resource-processor.js';
 import {RefreshActionProcessor} from './actions/builtin/refresh-processor.js';
 import {SynchronousActionProcessor} from './actions/builtin/synchronous-processor.js';
 import {LogActionProcessor} from './actions/builtin/log-processor.js';
+import {DownloadActionProcessor} from './actions/builtin/download-processor.js';
 import {addProcessor} from './pagelets.js';
 
 addProcessor(new ContentActionProcessor());
@@ -14,6 +15,8 @@ addProcessor(new ResourceActionProcessor());
 addProcessor(new RefreshActionProcessor());
 addProcessor(new SynchronousActionProcessor());
 addProcessor(new LogActionProcessor());
+addProcessor(new DownloadActionProcessor());
 
 export * from './pagelets.js';
 export {CustomActionProcessor} from './actions/builtin/custom-processor.js';
+export {DownloadActionProcessor} from './actions/builtin/download-processor.js';

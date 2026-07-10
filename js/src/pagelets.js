@@ -2,6 +2,7 @@ import Request from '@packaged-ui/request';
 import History from 'html5-history-api';
 import EventTarget from '@ungap/event-target';
 import {ActionIterator} from './actions/actionIterator.js';
+import {filenameFromDisposition} from './actions/builtin/download-processor.js';
 import {pushState} from './pushState.js';
 import {onReadyState, readyStates} from '@packaged-ui/ready-promise';
 
@@ -367,6 +368,7 @@ export function load(request)
 
         req
           .setWithCredentials(request.withCredentials)
+          .setResponseType('arraybuffer')
           .setMethod(request.getRequestMethod())
           .setHeaders(
             Object.assign(
@@ -583,14 +585,29 @@ function _createResponseFromXhr(xhr)
   const contentTypeHeader = xhr.getResponseHeader('content-type');
   let [contentType] = (contentTypeHeader && contentTypeHeader.split(';')) || [''];
 
-  const rawResponse = xhr.responseText.replace(/^while\(1\);|for\(;;\);|\)]}'/, '');
+  // Responses are read as ArrayBuffers so binary payloads survive intact.
+  const buffer = xhr.response;
+  const headers = _headersToObject(xhr.getAllResponseHeaders());
 
   const xhrProps = {
-    status:      xhr.status,
-    statusText:  xhr.statusText,
-    rawResponse: rawResponse,
-    headers:     _headersToObject(xhr.getAllResponseHeaders()),
+    status:     xhr.status,
+    statusText: xhr.statusText,
+    headers:    headers,
   };
+
+  // Any content type may be served as an attachment. Emit a download action
+  // carrying the raw bytes so it is handled uniformly and stays binary-safe.
+  const disposition = headers['content-disposition'];
+  if(disposition && disposition.includes('attachment'))
+  {
+    const blob = new Blob(buffer ? [buffer] : [], {type: contentType || 'application/octet-stream'});
+    xhrProps.actions = [{action: 'download', blob: blob, filename: filenameFromDisposition(disposition)}];
+    return new PageletResponse(xhrProps);
+  }
+
+  const decoded = (buffer && buffer.byteLength) ? new TextDecoder().decode(buffer) : '';
+  const rawResponse = decoded.replace(/^while\(1\);|for\(;;\);|\)]}'/, '');
+  xhrProps.rawResponse = rawResponse;
 
   switch(contentType)
   {

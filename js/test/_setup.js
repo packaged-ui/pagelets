@@ -30,6 +30,12 @@ global.cancelAnimationFrame = function (id)
 };
 copyProps(window, global);
 
+// Node 19+ ships native global Event/CustomEvent. copyProps lets pre-existing
+// global props win, so those natives shadow jsdom's — and jsdom's
+// document.dispatchEvent rejects a non-jsdom Event. Force jsdom's versions.
+global.Event = window.Event;
+global.CustomEvent = window.CustomEvent;
+
 // mockEventTarget.js
 
 // copy the code from https://developer.mozilla.org/en-US/docs/Web/API/EventTarget#Simple_implementation_of_EventTarget
