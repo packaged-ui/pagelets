@@ -1,4 +1,7 @@
-# This workflow will tag a release on github when the package.json version changes on master, and publish package to npm and github
+# Tags a GitHub release when the package.json version changes on master, then
+# publishes to npm and GitHub Packages in independent jobs. If a publish job
+# fails, re-run just that job with `gh run rerun <id> --failed` — the release is
+# already created, so it is reused rather than recreated.
 
 name: Tag Release
 
@@ -11,6 +14,8 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.release.outputs.released }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -21,20 +26,35 @@ jobs:
         id: release
         uses: justincy/github-action-npm-release@2.0.2
 
+  publish-npm:
+    name: Publish to npm
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
       - uses: actions/setup-node@v2
-        if: steps.release.outputs.released == 'true'
         with:
           registry-url: https://registry.npmjs.org/
       - run: npm publish
-        if: steps.release.outputs.released == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+  publish-github:
+    name: Publish to GitHub Packages
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
       - uses: actions/setup-node@v2
-        if: steps.release.outputs.released == 'true'
         with:
           registry-url: https://npm.pkg.github.com/
       - run: npm publish
-        if: steps.release.outputs.released == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
