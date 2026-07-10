@@ -36,7 +36,7 @@ func TestPagelet(t *testing.T) {
 }
 
 func assertEquals(t *testing.T, expected, actual string) {
-	if actual != expected && actual != ")]}"+expected {
+	if actual != expected && actual != ")]}'"+expected {
 		t.Fatal("Expected ", expected, "\nactual ", actual)
 	}
 }
